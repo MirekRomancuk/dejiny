@@ -48,3 +48,6 @@ Thumbs.db
 # Coverage
 coverage/
 .nyc_output/
+
+# Local production backups (database exports + Storage objects)
+backups/

@@ -10,6 +10,7 @@
     "test": "tsx --tsconfig tsconfig.app.json --test src/lib/*.test.ts src/components/*.test.tsx",
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false",
+    "backup:supabase": "node --env-file=.env.local scripts/backup-supabase.mjs",
     "migrate:joomla": "tsx scripts/migrate-joomla.ts",
     "migrate:images": "tsx scripts/upload-images.ts",
     "migrate:blocks": "tsx scripts/migrate-pages-to-blocks.ts"

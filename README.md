@@ -93,6 +93,17 @@ npm run build
 # Předchozí verzi zachovat v dist-backup-YYYYMMDD/
 ```
 
+## Aplikační záloha Supabase
+
+```bash
+npm run backup:supabase
+```
+
+Skript vytvoří ignorovanou složku `backups/supabase-<project>-<timestamp>/` s JSON exporty
+veřejných tabulek, všemi objekty veřejných Storage bucketů, SQL migracemi a kontrolním
+manifestem SHA-256. Jde o aplikační zálohu: Supabase Auth uživatelé, chráněná tabulka
+`profiles` a interní/privátní PostgreSQL schémata vyžadují samostatný PostgreSQL/Auth export.
+
 ## Bezpečnost
 
 - Žádné secrets v repu (`.env.*` mimo `.env.example` jsou gitignored).

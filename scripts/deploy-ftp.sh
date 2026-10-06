@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# Safe FTP deploy to Forpsi for the `web.dejinykorunyceske.cz` subdomain.
+# Safe FTPS deploy to Forpsi.
 #
 # Guard rails:
-#   - REMOTE_DIR must start with /www/ AND end with /web (or /<something>).
-#     The script refuses to run with a bare /www/ or any path that could touch the Joomla root.
+#   - A bare /www production target requires FTP_ALLOW_PRODUCTION_ROOT=yes.
+#   - Other targets must be below /www/ or /subdoms/.
 #   - Only files inside ./dist/ are uploaded.
-#   - Files are uploaded individually via curl --ftp-create-dirs. No recursive delete is performed.
+#   - Files are uploaded individually over explicit TLS. No recursive delete is performed.
 #
 # Usage:
 #   1. Copy .env.deploy.example to .env.deploy and fill FTP creds.
@@ -32,18 +32,26 @@ set +a
 
 : "${FTP_HOST:?FTP_HOST missing in .env.deploy}"
 : "${FTP_USER:?FTP_USER missing in .env.deploy}"
-: "${FTP_PASS:?FTP_PASS missing in .env.deploy}"
 : "${FTP_REMOTE_DIR:?FTP_REMOTE_DIR missing in .env.deploy}"
 
-# ---- Safety check: reject paths that could touch Joomla ----
-case "$FTP_REMOTE_DIR" in
-  /www | /www/ | /www/administrator* | /www/components* | /www/modules* | /www/plugins* | /www/templates* | /www/images* | /www/libraries* | /www/language*)
-    echo "✗ FTP_REMOTE_DIR='$FTP_REMOTE_DIR' is unsafe — would touch the Joomla root." >&2
-    echo "  Use a subdomain folder like /www/web instead." >&2
+if [ -n "${FTP_PASS_B64:-}" ]; then
+  if ! FTP_PASS="$(printf '%s' "$FTP_PASS_B64" | base64 --decode 2>/dev/null)"; then
+    echo "✗ FTP_PASS_B64 in .env.deploy is not valid Base64." >&2
     exit 1
+  fi
+fi
+: "${FTP_PASS:?FTP_PASS or FTP_PASS_B64 missing in .env.deploy}"
+
+# ---- Safety check: production root must be explicitly authorized ----
+case "$FTP_REMOTE_DIR" in
+  /www | /www/)
+    if [ "${FTP_ALLOW_PRODUCTION_ROOT:-no}" != "yes" ]; then
+      echo "✗ Production root /www requires FTP_ALLOW_PRODUCTION_ROOT=yes." >&2
+      exit 1
+    fi
     ;;
-  /www/*) : ;;  # OK
-  /subdoms/*) : ;;  # subdomény (dev.dejinykorunyceske.cz → /subdoms/dev) OK
+  /www/*) : ;;
+  /subdoms/*) : ;;
   *)
     echo "✗ FTP_REMOTE_DIR='$FTP_REMOTE_DIR' must be under /www/ or /subdoms/." >&2
     exit 1
@@ -97,8 +105,9 @@ while IFS= read -r -d '' file; do
   if [ "$DRY_RUN" = "1" ]; then
     echo "→ would upload to $remote"
   else
-    if curl -sS --ftp-create-dirs --connect-timeout 30 -T "$file" \
-         "ftp://$FTP_USER:$FTP_PASS@$FTP_HOST$remote" 2>/tmp/dkc-ftp-err; then
+    if curl -sS --ftp-create-dirs --ssl-reqd --ftp-pasv --connect-timeout 30 \
+         --user "$FTP_USER:$FTP_PASS" -T "$file" \
+         "ftp://$FTP_HOST$remote" 2>/tmp/dkc-ftp-err; then
       echo "✓"
     else
       echo "✗"
@@ -113,7 +122,7 @@ if [ "$DRY_RUN" = "1" ]; then
   echo "✓ Dry run complete: $count files would be uploaded."
 elif [ "$errors" -eq 0 ]; then
   echo "✓ Deployed $count files."
-  echo "  Cíl: $FTP_REMOTE_DIR (dev → https://dev.dejinykorunyceske.cz, web → https://web.dejinykorunyceske.cz)"
+  echo "  Cíl: $FTP_REMOTE_DIR"
 else
   echo "⚠ Deployed $count files, $errors failed. Check error log above." >&2
   exit 1

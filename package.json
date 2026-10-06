@@ -11,6 +11,8 @@
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false",
     "backup:supabase": "node --env-file=.env.local scripts/backup-supabase.mjs",
+    "deploy:ftp": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-ftp.ps1",
+    "deploy:ftp:dry-run": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-ftp.ps1 -SkipBuild -DryRun",
     "migrate:joomla": "tsx scripts/migrate-joomla.ts",
     "migrate:images": "tsx scripts/upload-images.ts",
     "migrate:blocks": "tsx scripts/migrate-pages-to-blocks.ts"

@@ -86,12 +86,19 @@ legacy/              - Joomla SQL dump + obrázky (gitignored)
 
 ## Deploy
 
-```bash
-npm run build
-# → dist/ obsahuje index.html, .htaccess, assets/
-# Upload dist/* na hosting přes FTP/SFTP
-# Předchozí verzi zachovat v dist-backup-YYYYMMDD/
+```powershell
+# Kontrola cíle a seznamu souborů bez nahrávání
+npm run deploy:ftp:dry-run
+
+# Produkční build a upload přes explicitní FTPS
+npm run deploy:ftp
 ```
+
+Lokální `.env.deploy` je ignorovaný Gitem. Produkční kořen Forpsi je `/www`; jeho použití
+vyžaduje `FTP_ALLOW_PRODUCTION_ROOT=yes`. Skript pouze nahraje soubory z `dist/` a nic
+na serveru nemaže. Původní web zůstává uložený v `/data/pre-react-www-2026-10-06`,
+původní databáze zůstává ve Forpsi beze změny a `/subdoms` se při produkčním deployi
+nepoužívá.
 
 ## Aplikační záloha Supabase
 

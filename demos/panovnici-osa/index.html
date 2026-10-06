@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Zvýraznění panovníků na časové ose — 3 DEMO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Crimson+Text:ital@0;1&family=EB+Garamond:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:hsl(36 33% 92%); --fg:hsl(25 30% 15%); --card:hsl(38 30% 88%);
+    --primary:hsl(0 100% 27%); --accent:hsl(34 76% 44%); --border:hsl(34 30% 70%); --muted:hsl(25 15% 35%);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:
+      radial-gradient(1200px 600px at 50% -10%, hsl(34 76% 44% / .06), transparent 60%),
+      var(--bg);
+    color:var(--fg); font-family:'EB Garamond',serif; min-height:100vh;
+  }
+  .wrap{max-width:1000px; margin:0 auto; padding:3.5rem 1.25rem 4rem}
+  .over{font-family:'Cinzel',serif; text-transform:uppercase; letter-spacing:.32em; font-size:.72rem; color:var(--accent); text-align:center}
+  h1{font-family:'Cinzel',serif; font-weight:700; text-align:center; color:var(--primary); font-size:clamp(1.6rem,4vw,2.4rem); margin:.4rem 0 .1rem}
+  .lead{font-family:'Crimson Text',serif; font-style:italic; text-align:center; color:var(--muted); max-width:44rem; margin:.2rem auto 0}
+  .rule{width:64px;height:2px;background:var(--accent);margin:1.4rem auto 2.4rem;border-radius:2px}
+  .grid{display:grid; gap:1.1rem}
+  @media(min-width:760px){.grid{grid-template-columns:repeat(3,1fr)}}
+  .card{
+    display:flex; flex-direction:column; text-decoration:none; color:inherit;
+    background:var(--card); border:1px solid var(--border); border-radius:.6rem; overflow:hidden;
+    box-shadow:0 2px 10px rgb(0 0 0 / .06); transition:transform .18s, box-shadow .18s, border-color .18s;
+  }
+  .card:hover{transform:translateY(-4px); box-shadow:0 14px 30px rgb(0 0 0 / .15); border-color:var(--accent)}
+  .thumb{height:120px; position:relative; border-bottom:1px solid var(--border); background:linear-gradient(180deg,hsl(38 30% 90%),hsl(36 30% 84%))}
+  .thumb svg{position:absolute; inset:0; width:100%; height:100%}
+  .num{position:absolute; top:.5rem; left:.6rem; font-family:'Cinzel',serif; font-weight:700; font-size:.8rem; color:var(--primary); background:hsl(36 33% 96% / .85); border:1px solid var(--border); border-radius:999px; width:1.7rem; height:1.7rem; display:grid; place-items:center}
+  .body{padding:1rem 1.05rem 1.15rem}
+  .body h2{font-family:'Cinzel',serif; font-size:1.02rem; color:var(--primary); margin:0 0 .4rem}
+  .body p{margin:0; font-size:.94rem; line-height:1.5; color:var(--muted)}
+  .go{margin-top:.85rem; font-family:'Cinzel',serif; text-transform:uppercase; letter-spacing:.12em; font-size:.72rem; color:var(--accent)}
+  footer{margin-top:2.6rem; text-align:center; font-family:'Crimson Text',serif; font-style:italic; color:var(--muted); font-size:.9rem}
+  .crown{color:var(--accent)}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="over">Dějiny Koruny české · návrh</div>
+    <h1><span class="crown">♛</span> Zvýraznění panovníků na časové ose</h1>
+    <p class="lead">Tři návrhy, jak v režimu „časová osa" na první pohled poznat, za kterého panovníka se události odehrály. Stejná ukázková data (přemyslovská knížata 872–999) i vzhled webu — liší se jen způsob zvýraznění. Klikni a vyzkoušej (interaktivní: najetí myší, scroll, rozbalování).</p>
+    <div class="rule"></div>
+
+    <a class="card" href="demo-3-plna-stranka.html" style="margin-bottom:1.6rem; border-color:var(--accent); border-width:2px">
+      <div class="body" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap">
+        <div style="flex:1; min-width:240px">
+          <div class="over" style="text-align:left; margin-bottom:.25rem">Rozpracováno · plná stránka</div>
+          <h2 style="font-size:1.2rem; margin:0 0 .35rem"><span class="crown">★</span> DEMO 3 — Medailony v celém designu stránky</h2>
+          <p>Vybraný přístup dotažený do věrné kopie stránky <strong>Události → Časová osa</strong>: pravá hlavička (koruna, znaky, menu), noční hero, kapitoly a páteř 1:1 z produkce, medailony panovníků, rejstřík ér i patička. Světlý/tmavý režim.</p>
+        </div>
+        <div class="go" style="font-size:.9rem">Otevřít plnou verzi →</div>
+      </div>
+    </a>
+
+    <div class="over" style="margin-bottom:.9rem; opacity:.7">Původní 3 varianty (kostra)</div>
+    <div class="grid">
+      <a class="card" href="demo-1-dynasticke-pruhy.html">
+        <div class="thumb">
+          <span class="num">1</span>
+          <svg viewBox="0 0 200 120" aria-hidden="true">
+            <rect x="18" y="10" width="30" height="34" fill="hsl(0 100% 27% / .18)" stroke="hsl(34 76% 44%)"/>
+            <rect x="18" y="45" width="30" height="30" fill="hsl(34 76% 44% / .18)" stroke="hsl(34 76% 44%)"/>
+            <rect x="18" y="76" width="30" height="34" fill="hsl(0 100% 27% / .18)" stroke="hsl(34 76% 44%)"/>
+            <line x1="60" y1="8" x2="60" y2="112" stroke="hsl(0 100% 27%)" stroke-width="2"/>
+            <line x1="64" y1="8" x2="64" y2="112" stroke="hsl(34 76% 44%)" stroke-width="2"/>
+            <rect x="78" y="18" width="104" height="16" rx="3" fill="hsl(38 30% 82%)" stroke="hsl(34 30% 70%)"/>
+            <rect x="78" y="52" width="104" height="16" rx="3" fill="hsl(38 30% 82%)" stroke="hsl(34 30% 70%)"/>
+            <rect x="78" y="86" width="104" height="16" rx="3" fill="hsl(38 30% 82%)" stroke="hsl(34 30% 70%)"/>
+          </svg>
+        </div>
+        <div class="body">
+          <h2>Dynastické pruhy</h2>
+          <p>Svislý barevný pruh vlády podél páteře. Každý panovník = souvislý segment; najetí zvýrazní jeho roky (a naopak). Vláda „na jeden pohled".</p>
+          <div class="go">Otevřít demo →</div>
+        </div>
+      </a>
+
+      <a class="card" href="demo-2-sticky-zahlavi.html">
+        <div class="thumb">
+          <span class="num">2</span>
+          <svg viewBox="0 0 200 120" aria-hidden="true">
+            <rect x="20" y="8" width="160" height="18" rx="4" fill="hsl(0 100% 27% / .14)" stroke="hsl(0 100% 27%)"/>
+            <circle cx="33" cy="17" r="5" fill="hsl(34 76% 44%)"/>
+            <rect x="40" y="40" width="120" height="22" rx="4" fill="hsl(38 30% 82%)" stroke="hsl(34 76% 44%)"/>
+            <line x1="100" y1="64" x2="100" y2="114" stroke="hsl(0 100% 27%)" stroke-width="2"/>
+            <line x1="104" y1="64" x2="104" y2="114" stroke="hsl(34 76% 44%)" stroke-width="2"/>
+            <rect x="112" y="74" width="66" height="13" rx="3" fill="hsl(38 30% 82%)" stroke="hsl(34 30% 70%)"/>
+            <rect x="26" y="94" width="66" height="13" rx="3" fill="hsl(38 30% 82%)" stroke="hsl(34 30% 70%)"/>
+          </svg>
+        </div>
+        <div class="body">
+          <h2>Sticky záhlaví + bannery</h2>
+          <p>„Lepící" lišta nahoře stále ukazuje aktuálního panovníka. Na začátku každé vlády celoširoký banner (erb, jméno, léta, přídomek).</p>
+          <div class="go">Otevřít demo →</div>
+        </div>
+      </a>
+
+      <a class="card" href="demo-3-medailony.html">
+        <div class="thumb">
+          <span class="num">3</span>
+          <svg viewBox="0 0 200 120" aria-hidden="true">
+            <line x1="98" y1="6" x2="98" y2="114" stroke="hsl(0 100% 27%)" stroke-width="2"/>
+            <line x1="102" y1="6" x2="102" y2="114" stroke="hsl(34 76% 44%)" stroke-width="2"/>
+            <circle cx="100" cy="30" r="15" fill="hsl(38 30% 90%)" stroke="hsl(34 76% 44%)" stroke-width="2"/>
+            <circle cx="100" cy="82" r="15" fill="hsl(38 30% 90%)" stroke="hsl(34 76% 44%)" stroke-width="2"/>
+            <text x="100" y="34" text-anchor="middle" font-family="Cinzel,serif" font-size="9" fill="hsl(0 100% 27%)">V</text>
+            <text x="100" y="86" text-anchor="middle" font-family="Cinzel,serif" font-size="8" fill="hsl(0 100% 27%)">BI</text>
+            <rect x="118" y="24" width="60" height="12" rx="3" fill="hsl(38 30% 82%)" stroke="hsl(34 30% 70%)"/>
+            <rect x="22" y="76" width="60" height="12" rx="3" fill="hsl(38 30% 82%)" stroke="hsl(34 30% 70%)"/>
+          </svg>
+        </div>
+        <div class="body">
+          <h2>Panovnické medailony</h2>
+          <p>Velké „mince" s monogramem/znakem přímo na páteři + obarvené rozpětí vlády. Najetí propojí panovníka se všemi jeho událostmi.</p>
+          <div class="go">Otevřít demo →</div>
+        </div>
+      </a>
+    </div>
+
+    <footer>Každé demo má i přepínač světlý/tmavý režim (☾/☀ vpravo nahoře) — vyzkoušej obě varianty. <span class="crown">⚜</span></footer>
+  </div>
+</body>
+</html>

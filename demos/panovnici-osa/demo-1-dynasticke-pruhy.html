@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DEMO 1 — Dynastické pruhy · Dějiny Koruny české</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: hsl(36 33% 92%);
+    --fg: hsl(25 30% 15%);
+    --card: hsl(38 30% 88%);
+    --primary: hsl(0 100% 27%);
+    --accent: hsl(34 76% 44%);
+    --border: hsl(34 30% 70%);
+    --muted: hsl(25 15% 35%);
+
+    --cat-foreign: #8b1a1a;
+    --cat-domestic: #b8860b;
+    --cat-arts: #4b6b57;
+    --cat-person: #5a6b8c;
+    --cat-place: #8a5a2b;
+
+    --radius: 0.5rem;
+    --spine-w: 96px; /* central spine column width on desktop */
+    --shadow: 0 2px 10px hsl(25 30% 15% / 0.10), 0 1px 3px hsl(25 30% 15% / 0.08);
+    --shadow-lift: 0 8px 26px hsl(0 60% 20% / 0.20), 0 2px 8px hsl(25 30% 15% / 0.14);
+  }
+  html.dark {
+    --bg: hsl(25 15% 10%);
+    --fg: hsl(36 30% 90%);
+    --card: hsl(25 15% 14%);
+    --primary: hsl(0 70% 50%);
+    --accent: hsl(34 76% 55%);
+    --border: hsl(25 15% 25%);
+    --muted: hsl(36 20% 70%);
+
+    --cat-foreign: #c14a4a;
+    --cat-domestic: #d6a92e;
+    --cat-arts: #7fa78d;
+    --cat-person: #8ea0c4;
+    --cat-place: #bd8a55;
+
+    --shadow: 0 2px 12px hsl(0 0% 0% / 0.5);
+    --shadow-lift: 0 10px 30px hsl(0 0% 0% / 0.6), 0 0 0 1px hsl(34 76% 55% / 0.15);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(hsl(34 40% 55% / 0.05) 1px, transparent 1px),
+      radial-gradient(hsl(34 40% 55% / 0.04) 1px, transparent 1px),
+      linear-gradient(180deg, hsl(36 33% 94%) 0%, var(--bg) 40%);
+    background-size: 22px 22px, 22px 22px, 100% 100%;
+    background-position: 0 0, 11px 11px, 0 0;
+    color: var(--fg);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .4s ease, color .4s ease;
+  }
+  html.dark body {
+    background-image:
+      radial-gradient(hsl(34 40% 55% / 0.05) 1px, transparent 1px),
+      radial-gradient(hsl(34 40% 55% / 0.04) 1px, transparent 1px),
+      linear-gradient(180deg, hsl(25 16% 12%) 0%, var(--bg) 40%);
+  }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px 120px; }
+
+  /* ============ HEADER BAND ============ */
+  .theme-toggle {
+    position: fixed;
+    top: 18px; right: 18px;
+    z-index: 50;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--fg);
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform .2s ease, background .3s ease, border-color .3s ease;
+  }
+  .theme-toggle:hover { transform: rotate(-12deg) scale(1.06); border-color: var(--accent); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  header.band {
+    text-align: center;
+    padding: 54px 16px 30px;
+    position: relative;
+  }
+  .overline {
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    letter-spacing: 0.42em;
+    font-size: 0.72rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 14px;
+    padding-left: 0.42em;
+  }
+  header.band h1 {
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: clamp(1.55rem, 3.6vw, 2.6rem);
+    margin: 0 0 6px;
+    line-height: 1.15;
+  }
+  .band .subtitle {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 1.12rem;
+    color: var(--muted);
+    max-width: 640px;
+    margin: 10px auto 0;
+  }
+  .hairline {
+    height: 0; border: none;
+    border-top: 1px solid var(--accent);
+    max-width: 260px;
+    margin: 22px auto 0;
+    position: relative;
+    opacity: 0.75;
+  }
+  .hairline::before {
+    content: "⚜";
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg);
+    color: var(--accent);
+    padding: 0 12px;
+    font-size: 0.95rem;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    justify-content: center;
+    margin: 26px auto 0;
+    max-width: 760px;
+    font-family: 'EB Garamond', serif;
+    font-size: 0.86rem;
+  }
+  .legend .li { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); }
+  .legend .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  /* ============ TIMELINE LAYOUT ============ */
+  /* Grid: [ribbon | spine | content], content alternates side per node */
+  .timeline {
+    position: relative;
+    margin-top: 42px;
+    display: grid;
+    grid-template-columns: 132px var(--spine-w) 1fr;
+    /* left ribbon rail, central spine, right/left content handled per-node */
+  }
+
+  /* --- RIBBON RAIL (swim-lane) --- */
+  .ribbon {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    position: relative;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+  .ribbon-inner {
+    position: sticky;
+    top: 0;
+    height: 100%;
+  }
+
+  .segment {
+    position: relative;
+    border: none;
+    width: 100%;
+    display: block;
+    text-align: left;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+    color: inherit;
+    overflow: hidden;
+    border-radius: 6px;
+    transition: box-shadow .25s ease, filter .25s ease, transform .2s ease;
+  }
+  /* alternate tints */
+  .segment.tint-wine  { background:
+      linear-gradient(180deg, hsl(0 55% 40% / 0.14), hsl(0 55% 30% / 0.20));
+  }
+  .segment.tint-gold  { background:
+      linear-gradient(180deg, hsl(38 60% 55% / 0.16), hsl(34 60% 45% / 0.22));
+  }
+  html.dark .segment.tint-wine { background: linear-gradient(180deg, hsl(0 55% 28% / 0.42), hsl(0 55% 20% / 0.52)); }
+  html.dark .segment.tint-gold { background: linear-gradient(180deg, hsl(38 55% 40% / 0.30), hsl(34 55% 30% / 0.42)); }
+
+  /* reign boundary = bold gold hairline + fleur marker */
+  .segment + .segment { margin-top: 0; }
+  .segment .boundary {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent) 20%, var(--accent) 80%, transparent);
+    z-index: 3;
+  }
+  .segment .boundary::after {
+    content: "⚜";
+    position: absolute;
+    top: -0.62em;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--accent);
+    background: var(--bg);
+    font-size: 0.72rem;
+    padding: 0 4px;
+    line-height: 1;
+    text-shadow: 0 0 6px hsl(34 76% 50% / 0.5);
+  }
+  .segment:first-child .boundary { display: none; }
+
+  .segment .seg-body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px 6px;
+    position: relative;
+    border-right: 1px solid var(--border);
+  }
+
+  /* monogram crest */
+  .crest {
+    width: 40px; height: 46px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: var(--primary);
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    position: relative;
+    filter: drop-shadow(0 1px 1px hsl(25 30% 15% / 0.25));
+  }
+  .crest svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .crest .mono { position: relative; z-index: 1; padding-top: 2px; }
+
+  .seg-name {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    color: var(--fg);
+    font-size: 0.9rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    max-height: 210px;
+    text-align: center;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  .seg-years {
+    font-family: 'Cinzel', serif;
+    font-weight: 500;
+    font-size: 0.74rem;
+    color: var(--primary);
+    letter-spacing: 0.04em;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px 8px;
+    white-space: nowrap;
+  }
+  .seg-epithet {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 0.72rem;
+    color: var(--muted);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    max-height: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* segment states (active reign near viewport) */
+  .segment.on-screen .seg-body { border-right: 2px solid var(--accent); }
+  .segment.highlight {
+    z-index: 4;
+    box-shadow: inset 0 0 0 2px var(--accent), var(--shadow);
+    filter: saturate(1.15) brightness(1.03);
+  }
+  .segment.highlight .seg-name { color: var(--primary); }
+  .segment:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+
+  /* current-reign pulse indicator */
+  .segment .now-flag {
+    position: absolute;
+    top: 8px; right: -1px;
+    background: var(--primary);
+    color: hsl(36 40% 94%);
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 0 0 0 6px;
+    opacity: 0;
+    transform: translateX(6px);
+    transition: opacity .3s ease, transform .3s ease;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .segment.on-screen .now-flag { opacity: 1; transform: translateX(0); }
+
+  /* --- SPINE --- */
+  .spine {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    position: relative;
+  }
+  .spine::before, .spine::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    border-radius: 2px;
+  }
+  .spine::before { left: calc(50% - 4px); background: var(--primary); opacity: 0.85; }
+  .spine::after  { left: calc(50% + 2px); background: var(--accent);  opacity: 0.9; }
+
+  /* --- NODES --- */
+  .node {
+    grid-column: 2 / 4;   /* spans spine + content, node positions itself */
+    display: grid;
+    grid-template-columns: var(--spine-w) 1fr;
+    align-items: start;
+    margin: 8px 0;
+    scroll-margin-top: 24px;
+  }
+  .node .dot-wrap {
+    grid-column: 1;
+    position: relative;
+    height: 100%;
+    min-height: 44px;
+  }
+  .dot {
+    position: absolute;
+    top: 24px;
+    left: calc(50% - 3px);
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--primary);
+    transform: translate(-50%, 0);
+    box-shadow: 0 0 0 4px var(--bg);
+    z-index: 2;
+    transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .node .card-holder { grid-column: 2; }
+
+  /* connector from spine to card */
+  .card-holder { position: relative; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 18px 16px;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+    color: inherit;
+    position: relative;
+    transition: transform .22s cubic-bezier(.2,.7,.3,1), box-shadow .22s ease, border-color .22s ease, opacity .28s ease, filter .28s ease;
+  }
+  .card::before {
+    /* little pointer toward the spine */
+    content: "";
+    position: absolute;
+    top: 22px;
+    width: 26px; height: 1px;
+    background: var(--border);
+  }
+  .node.left .card-holder { }
+  .node .card:hover { border-color: var(--accent); }
+  .card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+  .card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .year {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 1.85rem;
+    color: var(--primary);
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+  .ruler-tag {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--muted);
+    text-align: right;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ruler-tag .rt-mono {
+    font-family: 'Cinzel', serif;
+    font-style: normal;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 1px 7px;
+  }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 8px; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #fff;
+    padding: 3px 9px;
+    border-radius: 999px;
+    line-height: 1.4;
+    box-shadow: inset 0 0 0 1px hsl(0 0% 100% / 0.14);
+  }
+  .chip .chip-dot { display:none; }
+
+  .snippet {
+    font-family: 'EB Garamond', serif;
+    color: var(--fg);
+    font-size: 1rem;
+    margin: 4px 0 0;
+  }
+  .snippet .more-hint {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+
+  /* expanded events list */
+  .events {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .node.open .events { display: block; }
+  .node.open .snippet { display: none; }
+
+  .event {
+    position: relative;
+    padding: 8px 10px 8px 16px;
+    margin: 0 0 8px;
+    border-left: 4px solid var(--muted);
+    background: hsl(36 30% 96% / 0.5);
+    border-radius: 0 6px 6px 0;
+  }
+  html.dark .event { background: hsl(25 15% 18% / 0.6); }
+  .event:last-child { margin-bottom: 0; }
+  .event .ev-cat {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .event .ev-text { font-size: 0.98rem; }
+  .event .flag {
+    display: inline-block;
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 0.8rem;
+    padding: 1px 8px;
+    border-radius: 999px;
+    margin-top: 5px;
+  }
+  .flag.positive { color: var(--accent); border: 1px solid var(--accent); }
+  .flag.positive::before { content: "✦ "; }
+  .flag.negative { color: var(--primary); border: 1px solid var(--primary); }
+  .flag.negative::before { content: "☾ "; }
+
+  /* ===== interactive highlight of nodes (from ribbon) ===== */
+  .timeline.has-focus .node:not(.dim-exempt) .card { opacity: 0.34; filter: saturate(0.6); }
+  .node.node-hi .card {
+    opacity: 1 !important;
+    filter: none !important;
+    border-color: var(--accent);
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-2px);
+  }
+  .node.node-hi .dot {
+    background: var(--accent);
+    border-color: var(--primary);
+    transform: translate(-50%, 0) scale(1.35);
+    box-shadow: 0 0 0 4px var(--bg), 0 0 10px 2px hsl(34 76% 50% / 0.6);
+  }
+
+  /* ============ RESPONSIVE (single column < 820px) ============ */
+  @media (max-width: 819px) {
+    body { font-size: 17px; }
+    .timeline {
+      display: block;
+      position: relative;
+      padding-left: 74px;
+    }
+    /* mobile ribbon = fixed narrow rail on the far left, sticky segments removed;
+       instead each node carries a ruler pill; but keep a compact vertical ribbon too */
+    .ribbon {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 62px;
+      display: block;
+    }
+    .ribbon-inner { position: absolute; inset: 0; height: auto; }
+    .segment { border-radius: 4px; }
+    .seg-name { font-size: 0.72rem; max-height: 120px; }
+    .seg-epithet { display: none; }
+    .crest { width: 30px; height: 34px; font-size: 0.66rem; }
+    .seg-years { font-size: 0.6rem; padding: 1px 5px; }
+    .seg-body { padding: 10px 2px; gap: 6px; }
+
+    .spine { display: none; }
+    .node {
+      display: block;
+      grid-column: auto;
+      margin: 0 0 14px;
+      padding-left: 0;
+    }
+    .node .dot-wrap { display: none; }
+    .node .card-holder { }
+    .card::before { display: none; }
+    .year { font-size: 1.5rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+    .theme-toggle:hover { transform: none; }
+  }
+
+  .foot {
+    text-align: center;
+    margin-top: 60px;
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .foot .fl { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Přepnout světlý/tmavý režim" title="Přepnout režim">☾</button>
+
+<div class="wrap">
+  <header class="band">
+    <p class="overline">Dějiny Koruny české</p>
+    <h1>Demo 1 — Dynastické pruhy</h1>
+    <p class="subtitle">Svislý pruh vedle osy funguje jako „ukazatel vlády“: každý panovník zabírá souvislý segment přesně přes roky svého panování, hranice září zlatou linkou s ⚜ a najetím na pruh se rozsvítí jeho léta na ose.</p>
+    <hr class="hairline" />
+    <div class="legend" id="legend" aria-hidden="false"></div>
+  </header>
+
+  <div class="timeline" id="timeline"></div>
+
+  <p class="foot">Klikni na uzel pro rozbalení událostí · najeď na <span class="fl">pruh</span> pro zvýraznění vlády · <span class="fl">⚜</span> značí předání vlády</p>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const RULERS = [
+  { id:1, name:'Bořivoj I.',   from:872, to:889, house:'Přemyslovci', epithet:'první křesťanský kníže', mono:'BI' },
+  { id:2, name:'Spytihněv I.', from:894, to:915, house:'Přemyslovci', epithet:'', mono:'SI' },
+  { id:3, name:'Vratislav I.', from:915, to:921, house:'Přemyslovci', epithet:'', mono:'VI' },
+  { id:4, name:'sv. Václav',   from:921, to:935, house:'Přemyslovci', epithet:'zemský patron', mono:'V' },
+  { id:5, name:'Boleslav I.',  from:935, to:972, house:'Přemyslovci', epithet:'Ukrutný', mono:'BI' },
+  { id:6, name:'Boleslav II.', from:972, to:999, house:'Přemyslovci', epithet:'Pobožný', mono:'BII' },
+];
+const NODES = [
+  { year:874, rulerId:1, events:[{cat:'domestic', text:'Bořivoj přijímá křest od arcibiskupa Metoděje na Moravě', highlight:'positive'}] },
+  { year:883, rulerId:1, events:[{cat:'place', text:'Přenesení sídla z Levého Hradce na Pražský hrad'},{cat:'arts', text:'Stavba kostela Panny Marie na Hradě'}] },
+  { year:895, rulerId:2, events:[{cat:'foreign', text:'Čeští předáci se v Řezně poddávají Východofranské říši'}] },
+  { year:908, rulerId:2, events:[{cat:'arts', text:'Rozvoj hradiště a řemesel'}] },
+  { year:915, rulerId:3, events:[{cat:'domestic', text:'Nástup knížete Vratislava I.'}] },
+  { year:921, rulerId:4, events:[{cat:'domestic', text:'Nástup Václava; regentství kněžny Drahomíry'},{cat:'person', text:'Babička sv. Ludmila'}] },
+  { year:929, rulerId:4, events:[{cat:'foreign', text:'Vpád Jindřicha Ptáčníka, uzavření míru'},{cat:'arts', text:'Založení rotundy sv. Víta na Hradě'}] },
+  { year:935, rulerId:4, events:[{cat:'domestic', text:'Vražda knížete Václava ve Staré Boleslavi', highlight:'negative'}] },
+  { year:950, rulerId:5, events:[{cat:'foreign', text:'Boleslav I. uznává svrchovanost Oty I.'}] },
+  { year:955, rulerId:5, events:[{cat:'foreign', text:'Bitva na řece Lechu — účast českých oddílů', highlight:'positive'}] },
+  { year:965, rulerId:5, events:[{cat:'person', text:'Zpráva kupce Ibráhíma ibn Jákúba o Praze'}] },
+  { year:973, rulerId:6, events:[{cat:'arts', text:'Založení pražského biskupství', highlight:'positive'}] },
+  { year:982, rulerId:6, events:[{cat:'person', text:'Vojtěch Slavníkovec zvolen pražským biskupem'}] },
+  { year:995, rulerId:6, events:[{cat:'domestic', text:'Vyvraždění Slavníkovců na Libici', highlight:'negative'}] },
+];
+
+const CAT_LABELS = {
+  foreign:'Zahraniční politika',
+  domestic:'Domácí politika',
+  arts:'Vzdělanost a umění',
+  person:'Osobnosti',
+  place:'Místa',
+};
+const CAT_VAR = {
+  foreign:'var(--cat-foreign)',
+  domestic:'var(--cat-domestic)',
+  arts:'var(--cat-arts)',
+  person:'var(--cat-person)',
+  place:'var(--cat-place)',
+};
+const HIGHLIGHT_LABELS = { positive:'světlá chvíle', negative:'temná hodina' };
+
+const rulerById = id => RULERS.find(r => r.id === id);
+
+/* small heraldic shield SVG behind the monogram */
+function crestSVG() {
+  return `<svg viewBox="0 0 40 46" aria-hidden="true">
+    <path d="M2 3 H38 V24 C38 36 30 42 20 45 C10 42 2 36 2 24 Z"
+      fill="none" stroke="var(--accent)" stroke-width="1.4" opacity="0.85"/>
+    <path d="M2 3 H38 V24 C38 36 30 42 20 45 C10 42 2 36 2 24 Z"
+      fill="var(--primary)" opacity="0.10"/>
+  </svg>`;
+}
+
+/* ============ BUILD DOM ============ */
+const timelineEl = document.getElementById('timeline');
+const nodeElsByRuler = {};   // rulerId -> [nodeEl,...]
+const segmentByRuler = {};   // rulerId -> segEl
+
+/* group nodes by ruler (contiguous by construction) */
+const rulersWithNodes = RULERS.filter(r => NODES.some(n => n.rulerId === r.id));
+
+/* ---- RIBBON (swim-lane) ---- */
+const ribbon = document.createElement('div');
+ribbon.className = 'ribbon';
+ribbon.setAttribute('role', 'tablist');
+ribbon.setAttribute('aria-label', 'Panovníci — ukazatel vlády');
+const ribbonInner = document.createElement('div');
+ribbonInner.className = 'ribbon-inner';
+ribbon.appendChild(ribbonInner);
+timelineEl.appendChild(ribbon);
+
+/* ---- SPINE ---- */
+const spine = document.createElement('div');
+spine.className = 'spine';
+timelineEl.appendChild(spine);
+
+/* Build ribbon segments; height proportional to number of nodes in reign */
+rulersWithNodes.forEach((r, i) => {
+  const count = NODES.filter(n => n.rulerId === r.id).length;
+
+  const seg = document.createElement('button');
+  seg.className = 'segment ' + (i % 2 === 0 ? 'tint-wine' : 'tint-gold');
+  seg.style.flex = count + ' 1 0';           // proportional height (desktop flex)
+  seg.dataset.ruler = r.id;
+  seg.setAttribute('role', 'tab');
+  seg.setAttribute('aria-label', `${r.name}, vláda ${r.from}–${r.to}${r.epithet ? ', ' + r.epithet : ''}`);
+
+  const boundary = document.createElement('span');
+  boundary.className = 'boundary';
+  seg.appendChild(boundary);
+
+  const nowFlag = document.createElement('span');
+  nowFlag.className = 'now-flag';
+  nowFlag.textContent = 'nyní';
+  seg.appendChild(nowFlag);
+
+  const body = document.createElement('span');
+  body.className = 'seg-body';
+
+  const crest = document.createElement('span');
+  crest.className = 'crest';
+  crest.innerHTML = crestSVG() + `<span class="mono">${r.mono}</span>`;
+  body.appendChild(crest);
+
+  const name = document.createElement('span');
+  name.className = 'seg-name';
+  name.textContent = r.name;
+  body.appendChild(name);
+
+  const years = document.createElement('span');
+  years.className = 'seg-years';
+  years.textContent = `${r.from}–${r.to}`;
+  body.appendChild(years);
+
+  if (r.epithet) {
+    const ep = document.createElement('span');
+    ep.className = 'seg-epithet';
+    ep.textContent = r.epithet;
+    body.appendChild(ep);
+  }
+
+  seg.appendChild(body);
+  ribbonInner.appendChild(seg);
+  segmentByRuler[r.id] = seg;
+
+  /* interactions: hover/focus highlight reign nodes; click scroll */
+  const enter = () => highlightRuler(r.id, true);
+  const leave = () => highlightRuler(r.id, false);
+  seg.addEventListener('mouseenter', enter);
+  seg.addEventListener('mouseleave', leave);
+  seg.addEventListener('focus', enter);
+  seg.addEventListener('blur', leave);
+  seg.addEventListener('click', () => scrollToReign(r.id));
+});
+
+/* ---- NODES ---- */
+NODES.forEach((n, idx) => {
+  const r = rulerById(n.rulerId);
+
+  const node = document.createElement('div');
+  node.className = 'node ' + (idx % 2 === 0 ? 'right' : 'left');
+  node.dataset.ruler = n.rulerId;
+  node.dataset.year = n.year;
+  node.id = 'node-' + n.year;
+
+  const dotWrap = document.createElement('div');
+  dotWrap.className = 'dot-wrap';
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  dotWrap.appendChild(dot);
+  node.appendChild(dotWrap);
+
+  const holder = document.createElement('div');
+  holder.className = 'card-holder';
+
+  const card = document.createElement('button');
+  card.className = 'card';
+  card.setAttribute('aria-expanded', 'false');
+  card.setAttribute('aria-label', `Rok ${n.year}, ${r.name}. Rozbalit události.`);
+
+  /* head: year + ruler tag */
+  const head = document.createElement('div');
+  head.className = 'card-head';
+  const year = document.createElement('span');
+  year.className = 'year';
+  year.textContent = n.year;
+  head.appendChild(year);
+
+  const rtag = document.createElement('span');
+  rtag.className = 'ruler-tag';
+  rtag.innerHTML = `<span class="rt-mono">${r.mono}</span>${r.name}`;
+  head.appendChild(rtag);
+  card.appendChild(head);
+
+  /* chips: one per distinct category present */
+  const cats = [...new Set(n.events.map(e => e.cat))];
+  const chips = document.createElement('div');
+  chips.className = 'chips';
+  cats.forEach(c => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.style.background = CAT_VAR[c];
+    chip.textContent = CAT_LABELS[c];
+    chips.appendChild(chip);
+  });
+  card.appendChild(chips);
+
+  /* snippet (first event, collapsed) */
+  const snippet = document.createElement('p');
+  snippet.className = 'snippet';
+  snippet.textContent = n.events[0].text;
+  if (n.events.length > 1) {
+    const hint = document.createElement('span');
+    hint.className = 'more-hint';
+    hint.textContent = `+ ${n.events.length - 1} další`;
+    snippet.appendChild(hint);
+  }
+  card.appendChild(snippet);
+
+  /* expanded events */
+  const events = document.createElement('div');
+  events.className = 'events';
+  n.events.forEach(e => {
+    const ev = document.createElement('div');
+    ev.className = 'event';
+    ev.style.borderLeftColor = CAT_VAR[e.cat];
+    const cat = document.createElement('span');
+    cat.className = 'ev-cat';
+    cat.style.color = CAT_VAR[e.cat];
+    cat.textContent = CAT_LABELS[e.cat];
+    ev.appendChild(cat);
+    const txt = document.createElement('span');
+    txt.className = 'ev-text';
+    txt.textContent = e.text;
+    ev.appendChild(txt);
+    if (e.highlight) {
+      const fl = document.createElement('span');
+      fl.className = 'flag ' + e.highlight;
+      fl.textContent = HIGHLIGHT_LABELS[e.highlight];
+      ev.appendChild(document.createElement('br'));
+      ev.appendChild(fl);
+    }
+    events.appendChild(ev);
+  });
+  card.appendChild(events);
+
+  /* toggle expand */
+  card.addEventListener('click', () => {
+    const open = node.classList.toggle('open');
+    card.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  /* two-way linking: hovering a node highlights its ruler segment */
+  const nodeEnter = () => {
+    const seg = segmentByRuler[n.rulerId];
+    if (seg) seg.classList.add('highlight');
+  };
+  const nodeLeave = () => {
+    const seg = segmentByRuler[n.rulerId];
+    if (seg) seg.classList.remove('highlight');
+  };
+  card.addEventListener('mouseenter', nodeEnter);
+  card.addEventListener('mouseleave', nodeLeave);
+  card.addEventListener('focus', nodeEnter);
+  card.addEventListener('blur', nodeLeave);
+
+  holder.appendChild(card);
+  node.appendChild(holder);
+  timelineEl.appendChild(node);
+
+  (nodeElsByRuler[n.rulerId] = nodeElsByRuler[n.rulerId] || []).push(node);
+});
+
+/* ============ HIGHLIGHT LOGIC ============ */
+function highlightRuler(rulerId, on) {
+  const seg = segmentByRuler[rulerId];
+  if (on) {
+    timelineEl.classList.add('has-focus');
+    if (seg) seg.classList.add('highlight');
+    (nodeElsByRuler[rulerId] || []).forEach(nd => {
+      nd.classList.add('node-hi', 'dim-exempt');
+    });
+  } else {
+    timelineEl.classList.remove('has-focus');
+    if (seg) seg.classList.remove('highlight');
+    (nodeElsByRuler[rulerId] || []).forEach(nd => {
+      nd.classList.remove('node-hi', 'dim-exempt');
+    });
+  }
+}
+
+function scrollToReign(rulerId) {
+  const first = (nodeElsByRuler[rulerId] || [])[0];
+  if (!first) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  first.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+  /* brief pulse */
+  first.classList.add('node-hi');
+  setTimeout(() => { if (!timelineEl.classList.contains('has-focus')) first.classList.remove('node-hi'); }, 1200);
+}
+
+/* ============ "ON SCREEN" REIGN GAUGE ============ */
+/* Mark the ribbon segment whose reign owns the node nearest viewport center. */
+let ticking = false;
+function updateOnScreen() {
+  ticking = false;
+  const centerY = window.innerHeight / 2;
+  let best = null, bestDist = Infinity;
+  document.querySelectorAll('.node').forEach(nd => {
+    const rect = nd.getBoundingClientRect();
+    const mid = rect.top + rect.height / 2;
+    const dist = Math.abs(mid - centerY);
+    if (dist < bestDist) { bestDist = dist; best = nd; }
+  });
+  const activeRuler = best ? best.dataset.ruler : null;
+  Object.entries(segmentByRuler).forEach(([rid, seg]) => {
+    seg.classList.toggle('on-screen', rid === activeRuler);
+  });
+}
+function onScroll() {
+  if (!ticking) { ticking = true; requestAnimationFrame(updateOnScreen); }
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+window.addEventListener('resize', onScroll, { passive: true });
+updateOnScreen();
+
+/* ============ LEGEND ============ */
+const legendEl = document.getElementById('legend');
+Object.keys(CAT_LABELS).forEach(c => {
+  const li = document.createElement('span');
+  li.className = 'li';
+  li.innerHTML = `<span class="swatch" style="background:${CAT_VAR[c]}"></span>${CAT_LABELS[c]}`;
+  legendEl.appendChild(li);
+});
+
+/* ============ THEME TOGGLE ============ */
+const toggle = document.getElementById('themeToggle');
+const root = document.documentElement;
+function setTheme(dark) {
+  root.classList.toggle('dark', dark);
+  toggle.textContent = dark ? '☀' : '☾';
+  toggle.setAttribute('aria-pressed', dark ? 'true' : 'false');
+}
+setTheme(false);
+toggle.addEventListener('click', () => setTheme(!root.classList.contains('dark')));
+</script>
+</body>
+</html>

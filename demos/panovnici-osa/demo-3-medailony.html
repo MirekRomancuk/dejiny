@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DEMO 3 — Panovnické medailony na páteři · Dějiny Koruny české</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+<style>
+  /* ===================== TOKENY (shodné se skutečným webem) ===================== */
+  :root {
+    --bg: hsl(36 33% 92%);
+    --fg: hsl(25 30% 15%);
+    --card: hsl(38 30% 88%);
+    --primary: hsl(0 100% 27%);
+    --accent: hsl(34 76% 44%);
+    --border: hsl(34 30% 70%);
+    --muted: hsl(25 15% 35%);
+    --positive: #4a7c59;
+    --negative: hsl(0 84% 44%);
+
+    /* kategorie */
+    --cat-foreign:  #8b1a1a;
+    --cat-domestic: #b8860b;
+    --cat-arts:     #4b6b57;
+    --cat-person:   #5a6b8c;
+    --cat-place:    #8a5a2b;
+
+    --radius: 0.5rem;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --spine-w: 3px;
+    --font-heading: 'Cinzel', serif;
+    --font-body: 'EB Garamond', serif;
+    --font-accent: 'Crimson Text', serif;
+  }
+  html.dark {
+    --bg: hsl(25 15% 10%);
+    --fg: hsl(36 30% 90%);
+    --card: hsl(25 15% 14%);
+    --primary: hsl(0 70% 50%);
+    --accent: hsl(34 76% 55%);
+    --border: hsl(25 15% 25%);
+    --muted: hsl(36 20% 70%);
+    --positive: #5a9c6b;
+    --negative: hsl(0 70% 55%);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    color: var(--fg);
+    background-color: var(--bg);
+    /* jemná papírová textura */
+    background-image:
+      radial-gradient(hsl(34 40% 60% / 0.05) 1px, transparent 1px),
+      radial-gradient(hsl(34 40% 60% / 0.04) 1px, transparent 1px),
+      linear-gradient(hsl(0 0% 0% / 0.015), transparent 55%);
+    background-size: 22px 22px, 22px 22px, 100% 100%;
+    background-position: 0 0, 11px 11px, 0 0;
+    line-height: 1.6;
+    font-size: 18px;
+    transition: background-color .5s var(--ease), color .5s var(--ease);
+  }
+  ::selection { background: hsl(0 100% 27% / .18); }
+  html.dark ::selection { background: hsl(34 76% 55% / .25); }
+
+  /* ===================== TÉMA / TOGGLE ===================== */
+  .theme-toggle {
+    position: fixed;
+    top: 1rem; right: 1rem;
+    z-index: 60;
+    width: 44px; height: 44px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--fg);
+    font-size: 1.15rem;
+    cursor: pointer;
+    display: grid; place-items: center;
+    box-shadow: 0 6px 18px hsl(25 30% 15% / .16);
+    transition: transform .3s var(--ease), background .3s, border-color .3s;
+  }
+  .theme-toggle:hover { transform: rotate(-18deg) scale(1.06); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  /* ===================== HLAVIČKA ===================== */
+  .band {
+    text-align: center;
+    padding: 3.4rem 1.25rem 2.2rem;
+    max-width: 60rem;
+    margin: 0 auto;
+  }
+  .band__overline {
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: .34em;
+    font-size: .72rem;
+    color: var(--primary);
+    margin: 0 0 1.1rem;
+  }
+  .band__crown { color: var(--accent); font-size: 1.6rem; display:block; margin-bottom:.5rem; }
+  .band__title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: .04em;
+    font-size: clamp(1.5rem, 1rem + 3vw, 2.6rem);
+    line-height: 1.1;
+    margin: 0 0 1rem;
+    color: var(--fg);
+  }
+  .band__lede {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-size: 1.12rem;
+    color: var(--muted);
+    max-width: 46ch;
+    margin: 0 auto;
+  }
+  .band__rule {
+    display:flex; align-items:center; justify-content:center; gap:.75rem;
+    width: min(320px, 70vw); margin: 1.6rem auto 0; color: var(--accent);
+  }
+  .band__rule::before, .band__rule::after {
+    content:""; height:1px; flex:1; background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  /* ===================== LEGENDA PANOVNÍKŮ ===================== */
+  .legend {
+    position: fixed;
+    top: 1rem; left: 1rem;
+    z-index: 55;
+    width: 248px;
+    max-width: calc(100vw - 2rem);
+    background: color-mix(in srgb, var(--card) 92%, transparent);
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 30px hsl(25 30% 15% / .18);
+    overflow: hidden;
+    transition: box-shadow .3s;
+  }
+  .legend__head {
+    display: flex; align-items: center; gap: .5rem;
+    width: 100%;
+    padding: .65rem .8rem;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: .72rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--primary);
+    text-align: left;
+  }
+  .legend__head .crest { color: var(--accent); font-size: .95rem; }
+  .legend__head .chev { margin-left: auto; transition: transform .35s var(--ease); font-size:.7rem; color: var(--muted); }
+  .legend.collapsed .chev { transform: rotate(-90deg); }
+  .legend__head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .legend__body {
+    max-height: 60vh;
+    overflow: auto;
+    transition: max-height .4s var(--ease), opacity .3s;
+    padding: .35rem;
+  }
+  .legend.collapsed .legend__body { max-height: 0; opacity: 0; padding-top:0; padding-bottom:0; }
+  .legend__item {
+    display: flex; align-items: center; gap: .55rem;
+    width: 100%;
+    padding: .4rem .5rem;
+    border: 1px solid transparent;
+    border-radius: calc(var(--radius) - 2px);
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    color: var(--fg);
+    font-family: var(--font-body);
+    transition: background .2s, border-color .2s, transform .2s var(--ease);
+  }
+  .legend__item:hover, .legend__item:focus-visible {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    transform: translateX(2px);
+    outline: none;
+  }
+  .legend__dot {
+    width: 14px; height: 14px; border-radius: 999px; flex: 0 0 auto;
+    box-shadow: 0 0 0 2px var(--card), 0 0 0 3px currentColor;
+  }
+  .legend__label { display:flex; flex-direction:column; line-height:1.15; }
+  .legend__name { font-weight: 600; font-size: .92rem; }
+  .legend__years { font-family: var(--font-accent); font-style: italic; font-size: .78rem; color: var(--muted); }
+
+  /* ===================== OSA / PÁTEŘ ===================== */
+  .chronicle {
+    position: relative;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 1rem 1rem 8rem;
+  }
+  .stage { position: relative; }
+
+  /* dvojitá páteř (vínová + zlatá) */
+  .spine {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .spine::before, .spine::after {
+    content: "";
+    position: absolute; top: 0; bottom: 0;
+    width: var(--spine-w);
+    border-radius: 2px;
+  }
+  .spine::before { left: 3px;  background: var(--primary); opacity: .55; }
+  .spine::after  { right: 3px; background: var(--accent);  opacity: .75; }
+
+  /* barevné vlečky panovníků (span jejich vlády na páteři) */
+  .reign-span {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    border-radius: 999px;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(180deg,
+      transparent 0%,
+      color-mix(in srgb, var(--rc) 30%, transparent) 8%,
+      color-mix(in srgb, var(--rc) 30%, transparent) 92%,
+      transparent 100%);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--rc) 22%, transparent) inset;
+    opacity: .5;
+    transition: opacity .35s var(--ease), width .35s var(--ease), box-shadow .35s var(--ease), filter .35s var(--ease);
+  }
+  .reign-span.alt { opacity: .32; }
+  .reign-span.emph {
+    opacity: .95;
+    width: 40px;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--rc) 60%, transparent) inset,
+      0 0 26px 2px color-mix(in srgb, var(--rc) 55%, transparent);
+    filter: saturate(1.2);
+  }
+  /* zdobné závorky span */
+  .reign-span::before, .reign-span::after {
+    content: "";
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 22px; height: 10px;
+    border: 2px solid color-mix(in srgb, var(--rc) 65%, transparent);
+    opacity: .0; transition: opacity .35s;
+  }
+  .reign-span::before { top: -2px;    border-bottom: 0; border-radius: 8px 8px 0 0; }
+  .reign-span::after  { bottom: -2px; border-top: 0;    border-radius: 0 0 8px 8px; }
+  .reign-span.emph::before, .reign-span.emph::after { opacity: .9; }
+
+  /* ===================== MEDAILONY ===================== */
+  .medallion {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    width: 108px; height: 108px;
+    border: 0; padding: 0; margin: 0;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 999px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .medallion__disc {
+    position: absolute; inset: 0;
+    border-radius: 999px;
+    display: grid; place-items: center;
+    background:
+      radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--rc) 30%, var(--card)) 0%, var(--card) 62%);
+    box-shadow:
+      0 0 0 2px var(--bg),
+      0 0 0 3px color-mix(in srgb, var(--rc) 70%, var(--border)),
+      0 0 0 8px var(--bg),
+      0 0 0 9px color-mix(in srgb, var(--accent) 60%, transparent),
+      0 10px 26px hsl(25 30% 15% / .32);
+    transition: transform .35s var(--ease), box-shadow .35s var(--ease), background .3s;
+  }
+  /* zoubkovaný / ražený límec */
+  .medallion__disc::before {
+    content: "";
+    position: absolute; inset: 6px;
+    border-radius: 999px;
+    border: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent);
+    opacity: .7;
+  }
+  .medallion__mono {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: .02em;
+    color: color-mix(in srgb, var(--rc) 55%, var(--fg));
+    line-height: 1;
+    text-shadow: 0 1px 0 hsl(0 0% 100% / .25);
+  }
+  html.dark .medallion__mono { text-shadow: 0 1px 2px hsl(0 0% 0% / .5); }
+  .medallion__years {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%; transform: translateX(-50%);
+    white-space: nowrap;
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-size: .8rem;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--card) 85%, transparent);
+    padding: 1px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+  }
+  .medallion__crown {
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%; transform: translateX(-50%);
+    color: var(--accent);
+    font-size: .95rem;
+    opacity: .85;
+  }
+  .medallion:hover .medallion__disc,
+  .medallion:focus-visible .medallion__disc,
+  .medallion.emph .medallion__disc {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 0 2px var(--bg),
+      0 0 0 3px color-mix(in srgb, var(--rc) 85%, var(--border)),
+      0 0 0 8px var(--bg),
+      0 0 0 10px var(--accent),
+      0 0 30px 4px color-mix(in srgb, var(--accent) 45%, transparent),
+      0 14px 34px hsl(25 30% 15% / .4);
+  }
+  .medallion:focus-visible { outline: none; }
+  .medallion:focus-visible .medallion__disc { outline: 2px solid var(--accent); outline-offset: 6px; }
+  @keyframes medPulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent); }
+    70%  { box-shadow: 0 0 0 26px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+  .medallion.pulse .medallion__disc { animation: medPulse 1.1s var(--ease) 2; }
+  @media (prefers-reduced-motion: reduce) {
+    .medallion.pulse .medallion__disc { animation: none; }
+  }
+
+  /* ===================== UZLY (roky) ===================== */
+  .node {
+    position: relative;
+    width: 50%;
+    padding: 0 3.2rem;
+    margin: 2.2rem 0;
+    z-index: 3;
+  }
+  .node.left  { margin-left: 0; text-align: right; }
+  .node.right { margin-left: 50%; text-align: left; }
+
+  /* tečka na páteři */
+  .node__dot {
+    position: absolute;
+    top: 1.9rem;
+    width: 15px; height: 15px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 0 3px var(--bg);
+    z-index: 4;
+    transition: transform .3s var(--ease), background .3s, border-color .3s;
+  }
+  .node.left  .node__dot { right: -7.5px; }
+  .node.right .node__dot { left:  -7.5px; }
+
+  /* spojnice od karty k páteři */
+  .node__stem {
+    position: absolute;
+    top: 2.35rem;
+    height: 2px;
+    width: 2.6rem;
+    background: linear-gradient(90deg, var(--border), color-mix(in srgb, var(--accent) 60%, transparent));
+    z-index: 1;
+    opacity: .8;
+  }
+  .node.left  .node__stem { right: 0; }
+  .node.right .node__stem { left: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 60%, transparent), var(--border)); }
+
+  .card {
+    position: relative;
+    display: inline-block;
+    text-align: left;
+    width: 100%;
+    max-width: 30rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: .95rem 1.15rem 1.05rem;
+    box-shadow: 0 4px 16px hsl(25 30% 15% / .1);
+    cursor: pointer;
+    transition: transform .32s var(--ease), box-shadow .32s var(--ease),
+                border-color .32s var(--ease), opacity .32s var(--ease),
+                filter .32s var(--ease);
+    /* tenká vlastní barevná linka panovníka */
+    border-top: 3px solid color-mix(in srgb, var(--rc) 65%, var(--border));
+  }
+  .node.left .card { margin-left: auto; }
+  .card:hover, .card:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px hsl(25 30% 15% / .2);
+    outline: none;
+  }
+  .card:focus-visible { border-color: var(--accent); }
+
+  /* zvýraznění panovníkových uzlů */
+  .node.hl .node__dot { transform: scale(1.35); background: var(--accent); border-color: var(--primary); }
+  .node.hl .card {
+    transform: translateY(-4px) scale(1.01);
+    border-color: var(--accent);
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent),
+      0 16px 36px hsl(25 30% 15% / .28);
+  }
+  .node.left.hl .card { transform: translateY(-4px) scale(1.01); }
+
+  /* ztlumení ostatních při hoveru */
+  .stage.dim .node:not(.hl) .card { opacity: .32; filter: grayscale(.35) saturate(.7); }
+  .stage.dim .node:not(.hl) .node__dot { opacity: .35; }
+  .stage.dim .medallion:not(.emph) .medallion__disc { opacity: .4; filter: grayscale(.4); }
+
+  .card__year {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.75rem;
+    color: var(--primary);
+    line-height: 1;
+    margin: 0 0 .55rem;
+    letter-spacing: .01em;
+  }
+  .card__ruler {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-size: .82rem;
+    color: var(--muted);
+    margin: 0 0 .5rem;
+    display: inline-flex; align-items: center; gap: .35rem;
+  }
+  .card__ruler .rdot { width:9px; height:9px; border-radius:999px; box-shadow: 0 0 0 1px var(--card), 0 0 0 2px currentColor; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .55rem; }
+  .chip {
+    display: inline-flex; align-items: center;
+    font-family: var(--font-heading);
+    font-size: .6rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .2rem .5rem;
+    border-radius: 999px;
+    color: #fff;
+    background: var(--cc);
+    box-shadow: 0 1px 3px hsl(25 30% 15% / .25);
+  }
+  html.dark .chip { color: hsl(36 30% 95%); filter: brightness(1.15); }
+
+  .snippet {
+    font-family: var(--font-body);
+    font-size: .98rem;
+    color: var(--fg);
+    margin: 0;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .node.open .snippet { display: none; }
+
+  /* rozbalený obsah */
+  .events { list-style: none; margin: .3rem 0 0; padding: 0; display: none; }
+  .node.open .events { display: block; animation: fade .35s var(--ease); }
+  @keyframes fade { from { opacity: 0; transform: translateY(-4px); } to { opacity:1; transform:none; } }
+  .event {
+    padding: .5rem .65rem .55rem;
+    margin-top: .45rem;
+    background: color-mix(in srgb, var(--bg) 55%, var(--card));
+    border-left: 3px solid var(--cc);
+    border-radius: 0 calc(var(--radius) - 2px) calc(var(--radius) - 2px) 0;
+  }
+  .event__cat {
+    font-family: var(--font-heading);
+    font-size: .58rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--cc); margin: 0 0 .2rem; font-weight: 600;
+  }
+  .event__text { margin: 0; font-size: .96rem; }
+  .flag {
+    display: inline-block;
+    margin-top: .35rem;
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-size: .78rem;
+    padding: .05rem .5rem;
+    border-radius: 999px;
+  }
+  .flag.positive { color: var(--positive); background: color-mix(in srgb, var(--positive) 16%, transparent); }
+  .flag.negative { color: var(--negative); background: color-mix(in srgb, var(--negative) 16%, transparent); }
+  .flag::before { content: "✦ "; }
+
+  .expand-hint {
+    font-family: var(--font-accent); font-style: italic;
+    font-size: .75rem; color: var(--muted); margin-top: .5rem;
+    display: inline-flex; align-items: center; gap: .3rem;
+  }
+  .node.open .expand-hint { display:none; }
+
+  /* podnož */
+  .footer {
+    text-align: center; padding: 2rem 1rem 3rem;
+    font-family: var(--font-accent); font-style: italic;
+    color: var(--muted); font-size: .85rem;
+  }
+  .footer::before {
+    content: "⚜"; display:block; color: var(--accent); font-size: 1.2rem; margin-bottom:.4rem; font-style: normal;
+  }
+
+  /* ===================== MOBIL ===================== */
+  @media (max-width: 819px) {
+    body { font-size: 17px; }
+    .legend { width: 210px; }
+    .spine, .reign-span { left: 26px; transform: none; }
+    .reign-span { width: 22px; }
+    .medallion { left: 26px; transform: translate(-50%, -50%); width: 84px; height: 84px; }
+    .medallion__mono { font-size: 1.15rem; }
+    .node { width: 100%; padding: 0 0 0 62px; margin: 1.8rem 0; text-align: left; }
+    .node.left, .node.right { margin-left: 0; text-align: left; }
+    .node.left .card, .node.right .card { margin-left: 0; }
+    .node.left .node__dot, .node.right .node__dot { left: 19px; right: auto; }
+    .node.left .node__stem, .node.right .node__stem {
+      left: 33px; right: auto; width: 26px;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 60%, transparent), var(--border));
+    }
+    .node.left .card { margin-left: 0; }
+    .band { padding-top: 4.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Přepnout světlý/tmavý režim" title="Přepnout režim">☾</button>
+
+<!-- Legenda panovníků -->
+<aside class="legend" id="legend" aria-label="Rejstřík panovníků">
+  <button class="legend__head" id="legendHead" aria-expanded="true" aria-controls="legendBody">
+    <span class="crest">♛</span>
+    <span>Panovníci</span>
+    <span class="chev">▾</span>
+  </button>
+  <div class="legend__body" id="legendBody"></div>
+</aside>
+
+<!-- Hlavička -->
+<header class="band">
+  <span class="band__crown">♛</span>
+  <p class="band__overline">Dějiny Koruny české</p>
+  <h1 class="band__title">DEMO 3 — Panovnické medailony na páteři</h1>
+  <p class="band__lede">Každý panovník má na časové ose vlastní ražený medailon a barevný úsek — jako mince navlečené na niti času. Najetím rozzáří všechny své roky.</p>
+  <div class="band__rule">✦</div>
+</header>
+
+<!-- Kronika -->
+<main class="chronicle">
+  <div class="stage" id="stage">
+    <div class="spine" aria-hidden="true"></div>
+    <!-- medailony, spany a uzly doplní JS -->
+  </div>
+</main>
+
+<footer class="footer">Kronika Přemyslovců · 872–999 · ukázková data</footer>
+
+<script>
+"use strict";
+
+/* ===================== DATA ===================== */
+const RULERS = [
+  { id:1, name:'Bořivoj I.',   from:872, to:889, house:'Přemyslovci', epithet:'první křesťanský kníže', mono:'BI' },
+  { id:2, name:'Spytihněv I.', from:894, to:915, house:'Přemyslovci', epithet:'', mono:'SI' },
+  { id:3, name:'Vratislav I.', from:915, to:921, house:'Přemyslovci', epithet:'', mono:'VI' },
+  { id:4, name:'sv. Václav',   from:921, to:935, house:'Přemyslovci', epithet:'zemský patron', mono:'V' },
+  { id:5, name:'Boleslav I.',  from:935, to:972, house:'Přemyslovci', epithet:'Ukrutný', mono:'BI' },
+  { id:6, name:'Boleslav II.', from:972, to:999, house:'Přemyslovci', epithet:'Pobožný', mono:'BII' },
+];
+const NODES = [
+  { year:874, rulerId:1, events:[{cat:'domestic', text:'Bořivoj přijímá křest od arcibiskupa Metoděje na Moravě', highlight:'positive'}] },
+  { year:883, rulerId:1, events:[{cat:'place', text:'Přenesení sídla z Levého Hradce na Pražský hrad'},{cat:'arts', text:'Stavba kostela Panny Marie na Hradě'}] },
+  { year:895, rulerId:2, events:[{cat:'foreign', text:'Čeští předáci se v Řezně poddávají Východofranské říši'}] },
+  { year:908, rulerId:2, events:[{cat:'arts', text:'Rozvoj hradiště a řemesel'}] },
+  { year:915, rulerId:3, events:[{cat:'domestic', text:'Nástup knížete Vratislava I.'}] },
+  { year:921, rulerId:4, events:[{cat:'domestic', text:'Nástup Václava; regentství kněžny Drahomíry'},{cat:'person', text:'Babička sv. Ludmila'}] },
+  { year:929, rulerId:4, events:[{cat:'foreign', text:'Vpád Jindřicha Ptáčníka, uzavření míru'},{cat:'arts', text:'Založení rotundy sv. Víta na Hradě'}] },
+  { year:935, rulerId:4, events:[{cat:'domestic', text:'Vražda knížete Václava ve Staré Boleslavi', highlight:'negative'}] },
+  { year:950, rulerId:5, events:[{cat:'foreign', text:'Boleslav I. uznává svrchovanost Oty I.'}] },
+  { year:955, rulerId:5, events:[{cat:'foreign', text:'Bitva na řece Lechu — účast českých oddílů', highlight:'positive'}] },
+  { year:965, rulerId:5, events:[{cat:'person', text:'Zpráva kupce Ibráhíma ibn Jákúba o Praze'}] },
+  { year:973, rulerId:6, events:[{cat:'arts', text:'Založení pražského biskupství', highlight:'positive'}] },
+  { year:982, rulerId:6, events:[{cat:'person', text:'Vojtěch Slavníkovec zvolen pražským biskupem'}] },
+  { year:995, rulerId:6, events:[{cat:'domestic', text:'Vyvraždění Slavníkovců na Libici', highlight:'negative'}] },
+];
+
+const CAT_LABEL = {
+  foreign:  'Zahraniční politika',
+  domestic: 'Domácí politika',
+  arts:     'Vzdělanost a umění',
+  person:   'Osobnosti',
+  place:    'Místa',
+};
+const CAT_VAR = {
+  foreign:'var(--cat-foreign)', domestic:'var(--cat-domestic)', arts:'var(--cat-arts)',
+  person:'var(--cat-person)', place:'var(--cat-place)',
+};
+const HL_LABEL = { positive:'světlá chvíle', negative:'temná hodina' };
+
+/* per-panovník odstín (heraldicky laděná paleta, střídavě odlišná) */
+const RULER_HUE = {
+  1:'hsl(210 45% 46%)',  // ocelová modř
+  2:'hsl(150 34% 40%)',  // šalvějová
+  3:'hsl(28 62% 48%)',   // okrová
+  4:'hsl(0 62% 45%)',    // sv. Václav — vínová
+  5:'hsl(268 32% 50%)',  // ametyst
+  6:'hsl(190 40% 42%)',  // patinová modrozelená
+};
+
+const rulerById = id => RULERS.find(r => r.id === id);
+
+/* ===================== BUILD DOM ===================== */
+const stage = document.getElementById('stage');
+const legendBody = document.getElementById('legendBody');
+
+/* mapy pro obousměrné zvýraznění */
+const nodesByRuler = {};   // rulerId -> [nodeEl]
+const medallionByRuler = {}; // rulerId -> medallionEl
+const spanByRuler = {};    // rulerId -> spanEl
+const legendItemByRuler = {}; // rulerId -> legendEl
+
+RULERS.forEach(r => { nodesByRuler[r.id] = []; });
+
+/* --- legenda --- */
+RULERS.forEach(r => {
+  const btn = document.createElement('button');
+  btn.className = 'legend__item';
+  btn.type = 'button';
+  btn.style.color = RULER_HUE[r.id];
+  btn.setAttribute('data-ruler', r.id);
+  btn.innerHTML =
+    `<span class="legend__dot" style="background:${RULER_HUE[r.id]}"></span>` +
+    `<span class="legend__label">` +
+      `<span class="legend__name" style="color:var(--fg)">${r.name}</span>` +
+      `<span class="legend__years">${r.from}–${r.to}${r.epithet ? ' · ' + r.epithet : ''}</span>` +
+    `</span>`;
+  btn.addEventListener('mouseenter', () => highlightRuler(r.id));
+  btn.addEventListener('mouseleave', clearHighlight);
+  btn.addEventListener('focus', () => highlightRuler(r.id));
+  btn.addEventListener('blur', clearHighlight);
+  btn.addEventListener('click', () => scrollToMedallion(r.id));
+  legendBody.appendChild(btn);
+  legendItemByRuler[r.id] = btn;
+});
+
+/* --- uzly --- */
+NODES.forEach((n, i) => {
+  const ruler = rulerById(n.rulerId);
+  const side = i % 2 === 0 ? 'left' : 'right';
+  const node = document.createElement('article');
+  node.className = `node ${side}`;
+  node.style.setProperty('--rc', RULER_HUE[n.rulerId]);
+  node.setAttribute('data-ruler', n.rulerId);
+  node.setAttribute('data-year', n.year);
+
+  // kategorie přítomné v uzlu (unikátní, v pořadí výskytu)
+  const cats = [];
+  n.events.forEach(e => { if (!cats.includes(e.cat)) cats.push(e.cat); });
+
+  const chipsHtml = cats.map(c =>
+    `<span class="chip" style="--cc:${CAT_VAR[c]}">${CAT_LABEL[c]}</span>`
+  ).join('');
+
+  const eventsHtml = n.events.map(e => {
+    const flag = e.highlight
+      ? `<span class="flag ${e.highlight}">${HL_LABEL[e.highlight]}</span>` : '';
+    return `<li class="event" style="--cc:${CAT_VAR[e.cat]}">` +
+             `<p class="event__cat">${CAT_LABEL[e.cat]}</p>` +
+             `<p class="event__text">${e.text}</p>${flag}` +
+           `</li>`;
+  }).join('');
+
+  node.innerHTML =
+    `<span class="node__dot" aria-hidden="true"></span>` +
+    `<span class="node__stem" aria-hidden="true"></span>` +
+    `<button class="card" type="button" aria-expanded="false">` +
+      `<p class="card__year">${n.year}</p>` +
+      `<p class="card__ruler"><span class="rdot" style="color:${RULER_HUE[n.rulerId]};background:${RULER_HUE[n.rulerId]}"></span>${ruler.name}</p>` +
+      `<div class="chips">${chipsHtml}</div>` +
+      `<p class="snippet">${n.events[0].text}</p>` +
+      `<ul class="events">${eventsHtml}</ul>` +
+      `<span class="expand-hint">✦ rozbalit události</span>` +
+    `</button>`;
+
+  const cardBtn = node.querySelector('.card');
+  cardBtn.addEventListener('click', () => {
+    const open = node.classList.toggle('open');
+    cardBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  // obousměrné zvýraznění: hover uzlu -> zvýrazni medailon panovníka
+  node.addEventListener('mouseenter', () => highlightRuler(n.rulerId));
+  node.addEventListener('mouseleave', clearHighlight);
+  cardBtn.addEventListener('focus', () => highlightRuler(n.rulerId));
+  cardBtn.addEventListener('blur', clearHighlight);
+
+  stage.appendChild(node);
+  nodesByRuler[n.rulerId].push(node);
+});
+
+/* --- medailony + spany (vytvoří se, umístí až po layoutu) --- */
+let altToggle = false;
+RULERS.forEach(r => {
+  const nodes = nodesByRuler[r.id];
+  if (!nodes.length) return;
+
+  // span vlády
+  const span = document.createElement('div');
+  span.className = 'reign-span' + (altToggle ? ' alt' : '');
+  altToggle = !altToggle;
+  span.style.setProperty('--rc', RULER_HUE[r.id]);
+  span.setAttribute('data-ruler', r.id);
+  stage.appendChild(span);
+  spanByRuler[r.id] = span;
+
+  // medailon (u prvního uzlu panovníka)
+  const med = document.createElement('button');
+  med.className = 'medallion';
+  med.type = 'button';
+  med.style.setProperty('--rc', RULER_HUE[r.id]);
+  med.setAttribute('data-ruler', r.id);
+  med.setAttribute('aria-label', `${r.name}, vláda ${r.from}–${r.to}${r.epithet ? ', ' + r.epithet : ''}`);
+  med.innerHTML =
+    `<span class="medallion__crown" aria-hidden="true">♛</span>` +
+    `<span class="medallion__disc"><span class="medallion__mono">${r.mono}</span></span>` +
+    `<span class="medallion__years">${r.from}–${r.to}</span>`;
+  med.addEventListener('mouseenter', () => highlightRuler(r.id));
+  med.addEventListener('mouseleave', clearHighlight);
+  med.addEventListener('focus', () => highlightRuler(r.id));
+  med.addEventListener('blur', clearHighlight);
+  med.addEventListener('click', () => scrollToMedallion(r.id, true));
+  stage.appendChild(med);
+  medallionByRuler[r.id] = med;
+});
+
+/* ===================== POZICOVÁNÍ (podle skutečného layoutu) ===================== */
+function layout() {
+  const stageRect = stage.getBoundingClientRect();
+  RULERS.forEach(r => {
+    const nodes = nodesByRuler[r.id];
+    if (!nodes.length) return;
+
+    // svislé pozice teček uzlů tohoto panovníka (vůči stage)
+    let topDot = Infinity, botDot = -Infinity;
+    nodes.forEach(nd => {
+      const dot = nd.querySelector('.node__dot');
+      const dr = dot.getBoundingClientRect();
+      const center = dr.top - stageRect.top + dr.height / 2;
+      if (center < topDot) topDot = center;
+      if (center > botDot) botDot = center;
+    });
+
+    // span: od prvního po poslední uzel + trocha přesahu
+    const span = spanByRuler[r.id];
+    const pad = 22;
+    const spanTop = Math.max(0, topDot - pad);
+    const spanBot = botDot + pad;
+    span.style.top = spanTop + 'px';
+    span.style.height = Math.max(0, spanBot - spanTop) + 'px';
+
+    // medailon: vycentrovaný na tečku prvního uzlu panovníka
+    const med = medallionByRuler[r.id];
+    med.style.top = topDot + 'px';
+  });
+}
+
+/* ===================== INTERAKCE: ZVÝRAZNĚNÍ ===================== */
+let activeRuler = null;
+function highlightRuler(id) {
+  activeRuler = id;
+  stage.classList.add('dim');
+  RULERS.forEach(r => {
+    const on = r.id === id;
+    nodesByRuler[r.id].forEach(nd => nd.classList.toggle('hl', on));
+    medallionByRuler[r.id] && medallionByRuler[r.id].classList.toggle('emph', on);
+    spanByRuler[r.id] && spanByRuler[r.id].classList.toggle('emph', on);
+    legendItemByRuler[r.id] && legendItemByRuler[r.id].classList.toggle('emph', on);
+  });
+}
+function clearHighlight() {
+  activeRuler = null;
+  stage.classList.remove('dim');
+  RULERS.forEach(r => {
+    nodesByRuler[r.id].forEach(nd => nd.classList.remove('hl'));
+    medallionByRuler[r.id] && medallionByRuler[r.id].classList.remove('emph');
+    spanByRuler[r.id] && spanByRuler[r.id].classList.remove('emph');
+    legendItemByRuler[r.id] && legendItemByRuler[r.id].classList.remove('emph');
+  });
+}
+
+function scrollToMedallion(id, pulse) {
+  const med = medallionByRuler[id];
+  if (!med) return;
+  const firstNode = nodesByRuler[id][0];
+  (firstNode || med).scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
+  if (pulse) {
+    med.classList.remove('pulse');
+    void med.offsetWidth; // restart animace
+    med.classList.add('pulse');
+    setTimeout(() => med.classList.remove('pulse'), 2400);
+  }
+}
+function reduceMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/* ===================== SCROLL: aktuální panovník na obrazovce ===================== */
+/* Zvýrazní v legendě panovníka, jehož roky jsou právě uprostřed obrazovky,
+   aby bylo při každém scrollu jasné, kdo tehdy vládl. */
+let scrollRaf = null;
+function updateOnScreenRuler() {
+  scrollRaf = null;
+  if (activeRuler !== null) return; // hover má přednost
+  const mid = window.innerHeight / 2;
+  let best = null, bestDist = Infinity;
+  document.querySelectorAll('.node').forEach(nd => {
+    const r = nd.getBoundingClientRect();
+    const c = r.top + r.height / 2;
+    const dist = Math.abs(c - mid);
+    if (dist < bestDist) { bestDist = dist; best = nd; }
+  });
+  RULERS.forEach(r => {
+    const item = legendItemByRuler[r.id];
+    if (item) item.classList.remove('onscreen');
+  });
+  if (best) {
+    const rid = Number(best.getAttribute('data-ruler'));
+    const item = legendItemByRuler[rid];
+    if (item) item.classList.add('onscreen');
+  }
+}
+window.addEventListener('scroll', () => {
+  if (!scrollRaf) scrollRaf = requestAnimationFrame(updateOnScreenRuler);
+}, { passive: true });
+
+/* jemné vizuální zvýraznění "onscreen" v legendě */
+const styleExtra = document.createElement('style');
+styleExtra.textContent =
+  '.legend__item.onscreen{background:color-mix(in srgb,var(--accent) 16%,transparent);border-color:color-mix(in srgb,var(--accent) 50%,transparent);}' +
+  '.legend__item.emph{background:color-mix(in srgb,var(--accent) 22%,transparent);border-color:var(--accent);transform:translateX(3px);}';
+document.head.appendChild(styleExtra);
+
+/* ===================== LEGENDA collapse ===================== */
+const legend = document.getElementById('legend');
+const legendHead = document.getElementById('legendHead');
+legendHead.addEventListener('click', () => {
+  const collapsed = legend.classList.toggle('collapsed');
+  legendHead.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+});
+
+/* ===================== TÉMA ===================== */
+const toggle = document.getElementById('themeToggle');
+function applyTheme(dark) {
+  document.documentElement.classList.toggle('dark', dark);
+  toggle.textContent = dark ? '☀' : '☾';
+  toggle.setAttribute('aria-pressed', dark ? 'true' : 'false');
+}
+let dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+// spec: default = light
+dark = false;
+applyTheme(dark);
+toggle.addEventListener('click', () => { dark = !dark; applyTheme(dark); requestAnimationFrame(layout); });
+
+/* ===================== INIT ===================== */
+function relayoutSoon() { requestAnimationFrame(() => requestAnimationFrame(layout)); }
+window.addEventListener('resize', () => { requestAnimationFrame(layout); });
+// po načtení fontů (mění výšky) přepočítat
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(relayoutSoon);
+}
+window.addEventListener('load', relayoutSoon);
+relayoutSoon();
+updateOnScreenRuler();
+</script>
+</body>
+</html>

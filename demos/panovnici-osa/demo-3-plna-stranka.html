@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Události → Časová osa · Dějiny Koruny české (DEMO 3 — medailony)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================================
+     TOKENY (zkopírované VERBATIM z src/index.css) — light + dark
+     ============================================================================ */
+  :root {
+    --background: 36 33% 92%;
+    --foreground: 25 30% 15%;
+    --card: 38 30% 88%;
+    --card-foreground: 25 30% 15%;
+    --popover: 36 33% 96%;
+    --popover-foreground: 25 30% 15%;
+    --primary: 0 100% 27%;
+    --primary-foreground: 38 30% 95%;
+    --secondary: 36 30% 82%;
+    --secondary-foreground: 25 30% 15%;
+    --muted: 36 20% 85%;
+    --muted-foreground: 25 15% 35%;
+    --accent: 34 76% 44%;
+    --accent-foreground: 38 30% 95%;
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 34 30% 70%;
+    --input: 34 30% 80%;
+    --ring: 0 100% 27%;
+    --radius: 0.5rem;
+
+    /* fonty (tailwind.config.ts) */
+    --font-heading: 'Cinzel';
+    --font-body: 'EB Garamond';
+    --font-accent: 'Crimson Text';
+
+    /* barvy kategorií (specifikace DEMO 3) */
+    --cat-foreign:  #8b1a1a;
+    --cat-domestic: #b8860b;
+    --cat-arts:     #4b6b57;
+    --cat-person:   #5a6b8c;
+    --cat-place:    #8a5a2b;
+
+    /* noční paleta (night.css) */
+    --night-ink: #f5eae0;
+    --night-soft: #cbbba8;
+    --night-gold: #e9c27e;
+    --night-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  html.dark {
+    --background: 25 15% 10%;
+    --foreground: 36 30% 90%;
+    --card: 25 15% 14%;
+    --card-foreground: 36 30% 90%;
+    --popover: 25 15% 14%;
+    --popover-foreground: 36 30% 90%;
+    --primary: 0 70% 50%;
+    --primary-foreground: 36 30% 95%;
+    --secondary: 25 15% 22%;
+    --secondary-foreground: 36 30% 90%;
+    --muted: 25 10% 20%;
+    --muted-foreground: 36 20% 70%;
+    --accent: 34 76% 55%;
+    --accent-foreground: 25 15% 10%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 25 15% 25%;
+    --input: 25 15% 22%;
+    --ring: 0 70% 50%;
+  }
+
+  /* ============================================================================
+     BÁZE (src/index.css @layer base)
+     ============================================================================ */
+  * { box-sizing: border-box; border-color: hsl(var(--border)); }
+  html { font-family: var(--font-body), 'EB Garamond', serif; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-body), serif;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.5s var(--night-ease), color 0.5s var(--night-ease);
+    overflow-x: clip;
+  }
+  h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading), serif; margin: 0; }
+  ::selection { background: hsl(var(--primary) / 0.18); }
+  html.dark ::selection { background: hsl(var(--accent) / 0.28); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; }
+
+  /* ============================================================================
+     LAYOUT wrapper (PublicLayout) + pergamenová šumová vrstva (NOISE overlay)
+     ============================================================================ */
+  .app { position: relative; min-height: 100vh; overflow-x: clip; background: hsl(var(--background)); }
+  .noise-overlay {
+    pointer-events: none;
+    position: fixed; inset: 0; z-index: 0;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+  }
+  .app__inner { position: relative; z-index: 10; display: flex; min-height: 100vh; flex-direction: column; }
+  .app__main { flex: 1; }
+
+  /* ============================================================================
+     HLAVIČKA (HeroHeader.tsx) — koruna, titul, 5 erbů, menu, oddělovač, podtitul
+     ============================================================================ */
+  header.site-header { position: relative; width: 100%; }
+  .header__tools { position: absolute; right: 1rem; top: 1rem; z-index: 11; display: flex; align-items: center; gap: 0.25rem; }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 999px;
+    border: 0; background: transparent; color: hsl(var(--muted-foreground));
+    display: grid; place-items: center; cursor: pointer; font-size: 1.1rem; line-height: 1;
+    transition: color 0.3s var(--night-ease), background 0.3s, transform 0.3s var(--night-ease);
+  }
+  .icon-btn:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / 0.4); }
+  .icon-btn:focus-visible { outline: 2px solid hsl(var(--accent)); outline-offset: 2px; }
+  #themeToggle:hover { transform: rotate(-16deg) scale(1.06); }
+
+  .header__band { margin: 0 auto; max-width: 1400px; padding: 2rem 1rem 0.5rem; }
+  @media (min-width: 768px) { .header__band { padding-top: 3rem; } }
+  .header__crown-wrap { margin-bottom: 0.5rem; display: flex; justify-content: center; }
+  .header__crown { width: 20px; height: 20px; color: hsl(var(--accent)); transition: color 0.5s var(--night-ease); }
+  .header__title {
+    text-align: center; font-family: var(--font-heading), serif; font-weight: 700;
+    font-size: 1.5rem; letter-spacing: 0.05em; color: hsl(var(--foreground));
+    transition: color 0.5s var(--night-ease), text-shadow 0.5s var(--night-ease);
+  }
+  @media (min-width: 768px) { .header__title { font-size: 2.25rem; } }
+  .header__shields { margin-top: 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1.5rem; padding: 0 1rem; }
+  @media (min-width: 768px) { .header__shields { gap: 3rem; } }
+  .header__shields img { height: 4rem; width: auto; object-fit: contain; transition: filter 0.5s var(--night-ease); }
+  @media (min-width: 768px) { .header__shields img { height: 7rem; } }
+
+  nav.header__nav { margin-top: 1.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem 2rem; }
+  @media (min-width: 768px) { nav.header__nav { gap: 0.5rem 3rem; } }
+  .header__nav a {
+    position: relative; font-family: var(--font-heading), serif; font-weight: 600;
+    font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.15em;
+    color: hsl(var(--muted-foreground)); transition: color 0.3s var(--night-ease);
+  }
+  @media (min-width: 768px) { .header__nav a { font-size: 1rem; } }
+  .header__nav a::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -0.375rem; height: 2px;
+    background: hsl(var(--primary)); opacity: 0; transition: opacity 0.3s, background 0.5s var(--night-ease);
+  }
+  .header__nav a:hover { color: hsl(var(--foreground)); }
+  .header__nav a[aria-current="page"] { color: hsl(var(--primary)); }
+  .header__nav a[aria-current="page"]::after { opacity: 1; }
+
+  .header__sep { margin-top: 1.5rem; border-bottom: 1px solid hsl(var(--border) / 0.6); transition: border-color 0.5s var(--night-ease); }
+
+  .night-subtitle { position: relative; margin: 0 auto; max-width: 1400px; padding: 1.5rem 1rem 1rem; }
+  .header__subtitle {
+    position: relative; z-index: 1; text-align: center; font-family: var(--font-heading), serif;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: hsl(var(--primary));
+    font-size: 1.875rem; transition: color 0.5s var(--night-ease), text-shadow 0.5s var(--night-ease);
+  }
+  @media (min-width: 768px) { .header__subtitle { font-size: 2.25rem; } }
+  .header__subtitle-desc {
+    position: relative; z-index: 1; margin-top: 0.25rem; text-align: center;
+    font-family: var(--font-accent), serif; font-size: 0.875rem; color: hsl(var(--muted-foreground));
+    transition: color 0.5s var(--night-ease);
+  }
+  @media (min-width: 768px) { .header__subtitle-desc { font-size: 1rem; } }
+
+  /* ============================================================================
+     NOČNÍ SCÉNA — pevné pozadí za herem (night.css, aproximace CSS hvězdami)
+     ============================================================================ */
+  .night-scene { overflow: hidden; pointer-events: none; isolation: isolate; }
+  .tl-night { position: fixed; inset: 0; z-index: 0; will-change: opacity; }
+  .night-scene__grad {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(120% 70% at 50% -8%, rgba(43, 32, 24, 0.55), transparent 60%),
+      radial-gradient(90% 55% at 50% 100%, rgba(217, 148, 74, 0.16), transparent 72%),
+      linear-gradient(180deg, #140f0b 0%, #1a1410 30%, #241a12 52%, #40291a 70%, #7a5638 82%, #b98a56 90%, hsl(var(--background)) 100%);
+  }
+  .night-scene__nebula { position: absolute; border-radius: 50%; z-index: 0; }
+  .night-scene__nebula--a { width: 72vw; height: 72vw; left: -18vw; top: 2vh; background: radial-gradient(circle, rgba(217, 148, 74, 0.06), transparent 68%); }
+  .night-scene__nebula--b { width: 58vw; height: 58vw; right: -14vw; top: 22vh; background: radial-gradient(circle, rgba(214, 69, 69, 0.035), transparent 66%); }
+
+  /* statické hvězdy jako box-shadow tečky (aproximace hvězdného pole) */
+  .night-scene__stars, .night-scene__stars2 { position: absolute; top: 0; left: 0; width: 2px; height: 2px; border-radius: 50%; z-index: 1; }
+  .tl-tw {
+    position: absolute; border-radius: 50%; background: #f5eae0;
+    box-shadow: 0 0 4px 1px rgba(245, 234, 224, 0.55);
+    opacity: 0.85; will-change: opacity, transform;
+    animation: tlTwinkle var(--tw-dur, 4.5s) ease-in-out var(--tw-delay, 0s) infinite;
+  }
+  .tl-tw.gold { background: #e9c27e; box-shadow: 0 0 5px 1px rgba(233, 194, 126, 0.55); }
+  @keyframes tlTwinkle {
+    0%, 100% { opacity: 0.28; transform: scale(0.82); }
+    50% { opacity: 1; transform: scale(1.12); }
+  }
+  .night-scene__hradcany { position: absolute; left: 50%; transform: translate3d(-50%, 0, 0); z-index: 2; }
+  .night-scene__hradcany .rb { fill: #2a1d13; opacity: 0.82; }
+  .night-scene__hradcany .rf { fill: #160f0a; }
+  .night-scene__hradcany .gl { fill: #d9944a; opacity: 0.5; }
+  .tl-night .night-scene__hradcany { bottom: 8vh; width: min(1500px, 144%); height: clamp(96px, 15vw, 210px); }
+  @media (prefers-reduced-motion: reduce) { .tl-tw { animation: none; opacity: 0.7; } }
+
+  /* ============================================================================
+     PŘEBARVENÍ CHROME NAD NOCÍ (night.css) — scoped na html.night-active.night-on
+     ============================================================================ */
+  html.night-active header.site-header { position: relative; z-index: 1; }
+  html.night-active .header-anchor { position: relative; z-index: 1; }
+  .night-active.night-on header.site-header .header__crown { color: var(--night-gold); }
+  .night-active.night-on header.site-header .header__title { color: var(--night-ink); text-shadow: 0 0 26px rgba(233, 194, 126, 0.16); }
+  .night-active.night-on header.site-header .night-subtitle::before {
+    content: ''; position: absolute; inset: -6px 0 -10px; z-index: 0;
+    background: radial-gradient(120% 130% at 50% 42%, rgba(16, 11, 8, 0.86) 0%, rgba(16, 11, 8, 0.7) 46%, rgba(16, 11, 8, 0.32) 72%, transparent 100%);
+    pointer-events: none;
+  }
+  .night-active.night-on header.site-header .header__subtitle { color: var(--night-gold); text-shadow: 0 1px 2px rgba(16, 11, 8, 0.85), 0 0 26px rgba(233, 194, 126, 0.18); }
+  .night-active.night-on header.site-header .header__subtitle-desc { color: var(--night-ink); text-shadow: 0 1px 2px rgba(16, 11, 8, 0.8); }
+  .night-active.night-on header.site-header .header__shields img { filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.55)); }
+  .night-active.night-on header.site-header nav a { color: var(--night-soft); }
+  .night-active.night-on header.site-header nav a:hover { color: var(--night-ink); }
+  .night-active.night-on header.site-header nav a[aria-current="page"] { color: var(--night-gold); }
+  .night-active.night-on header.site-header nav a[aria-current="page"]::after { background: var(--night-gold); }
+  .night-active.night-on header.site-header .header__sep { border-bottom-color: transparent; }
+  .night-active.night-on header.site-header .header__tools .icon-btn { color: var(--night-soft); }
+  .night-active.night-on header.site-header .header__tools .icon-btn:hover { color: var(--night-ink); background: rgba(245,234,224,0.08); }
+  /* přepínač zobrazení (Tabulka/Časová osa) nad nocí */
+  .night-active.night-on [data-night-chrome] {
+    background: rgba(26, 20, 16, 0.28); border-color: rgba(217, 148, 74, 0.28); backdrop-filter: blur(4px);
+    transition: background 0.5s var(--night-ease), border-color 0.5s var(--night-ease);
+  }
+  .night-active.night-on [role="tablist"] [role="tab"][aria-selected="false"] { color: var(--night-ink); text-shadow: 0 1px 2px rgba(16, 11, 8, 0.7); }
+  .night-active.night-on [role="tablist"] [role="tab"][aria-selected="false"]:hover { color: #fff; }
+  .night-active.night-on .tl-intro__count,
+  .night-active.night-on .tl-intro__hint { color: var(--night-soft); }
+
+  /* ============================================================================
+     NOČNÍ HERO (TimelineHero.tsx + .tl-hero z timeline.css)
+     ============================================================================ */
+  .tl-hero {
+    position: relative;
+    width: 100vw; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;
+    min-height: 72svh;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    text-align: center;
+    padding: clamp(0.75rem, 2.5vh, 1.75rem) 1.25rem clamp(0.9rem, 2vh, 1.6rem);
+    color: #f5eae0;
+  }
+  .tl-hero__content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; max-width: min(46rem, 92%); }
+  .tl-hero__crown { width: clamp(54px, 7vw, 84px); height: auto; color: #e9c27e; margin-bottom: 1.3rem; filter: drop-shadow(0 0 18px rgba(233, 194, 126, 0.25)); }
+  .tl-hero__kicker { font-family: var(--font-accent), serif; font-style: italic; color: #e9c27e; font-size: clamp(1rem, 0.9rem + 0.4vw, 1.25rem); letter-spacing: 0.06em; margin: 0 0 0.55rem; }
+  .tl-hero__title { font-family: var(--font-heading), serif; font-weight: 800; font-size: clamp(1.5rem, 0.8rem + 2.4vw, 2.7rem); line-height: 1.1; letter-spacing: 0.02em; margin: 0; color: #f5eae0; text-shadow: 0 0 40px rgba(233, 194, 126, 0.18), 0 2px 2px rgba(0, 0, 0, 0.35); }
+  .tl-hero__title .accent { color: #d9944a; }
+  .tl-hero__rule { display: flex; align-items: center; gap: 1rem; margin: 1.4rem 0 1.1rem; color: #d9944a; width: min(380px, 72%); }
+  .tl-hero__rule::before, .tl-hero__rule::after { content: ""; height: 1px; flex: 1; background: linear-gradient(90deg, transparent, color-mix(in srgb, #d9944a 55%, transparent), transparent); }
+  .tl-hero__rule svg { width: 14px; height: 14px; flex: none; }
+  .tl-hero__sub { font-family: var(--font-body), serif; font-style: italic; color: #d9c9b5; font-size: clamp(1rem, 0.95rem + 0.3vw, 1.18rem); line-height: 1.55; max-width: 44ch; margin: 0; }
+  .tl-hero__scroll { margin: 0; display: inline-flex; flex-direction: column; align-items: center; gap: 0.35rem; background: none; border: 0; cursor: pointer; color: #d9c9b5; font-family: var(--font-accent), serif; font-style: italic; font-size: 0.98rem; }
+  .tl-hero__scroll .chev { width: 22px; height: 22px; color: #e9c27e; animation: tlBob 2.6s var(--night-ease) infinite; }
+  .tl-hero__scroll:focus-visible { outline: 2px solid #e9c27e; outline-offset: 4px; border-radius: 6px; }
+  @keyframes tlBob { 0%, 100% { transform: translateY(0); opacity: 0.6; } 50% { transform: translateY(6px); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .tl-hero__scroll .chev { animation: none; } }
+
+  /* ============================================================================
+     PŘEPÍNAČ ZOBRAZENÍ (segmentovaná lišta Tabulka / Časová osa)
+     ============================================================================ */
+  .view-wrap { max-width: 1360px; margin: 0 auto; padding: 1.75rem 1rem 0; position: relative; z-index: 1; }
+  .view-toggle {
+    display: inline-flex; margin: 0 auto; gap: 0.25rem; padding: 0.28rem;
+    background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 999px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  }
+  .view-wrap { display: flex; justify-content: center; }
+  .view-toggle [role="tab"] {
+    appearance: none; border: 0; cursor: pointer; background: transparent;
+    font-family: var(--font-heading), serif; font-weight: 600; font-size: 0.82rem;
+    letter-spacing: 0.08em; text-transform: uppercase; color: hsl(var(--muted-foreground));
+    padding: 0.5rem 1.4rem; border-radius: 999px; display: inline-flex; align-items: center; gap: 0.45rem;
+    transition: color 0.3s var(--night-ease), background 0.3s var(--night-ease), box-shadow 0.3s;
+  }
+  .view-toggle [role="tab"] svg { width: 15px; height: 15px; }
+  .view-toggle [role="tab"][aria-selected="true"] {
+    background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+    box-shadow: 0 2px 8px hsl(var(--primary) / 0.4);
+  }
+  .view-toggle [role="tab"][aria-selected="false"]:hover { color: hsl(var(--foreground)); }
+  .view-toggle [role="tab"]:focus-visible { outline: 2px solid hsl(var(--accent)); outline-offset: 2px; }
+
+  /* ============================================================================
+     ČASOVÁ OSA (timeline.css — scoped pod .tl) — kopie VERBATIM, tokeny inline
+     ============================================================================ */
+  .tl {
+    --tl-ink: hsl(var(--foreground));
+    --tl-ink-soft: hsl(var(--muted-foreground));
+    --tl-primary: hsl(var(--primary));
+    --tl-gold: hsl(var(--accent));
+    --tl-border: hsl(var(--border));
+    --tl-surface: hsl(var(--card));
+    --tl-surface-2: hsl(var(--popover));
+    --tl-bg: hsl(var(--background));
+    --tl-positive: #4a7c59;
+    --tl-negative: hsl(var(--destructive));
+    --tl-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --tl-spine-w: 2px;
+    position: relative;
+    padding-top: 2rem;
+  }
+
+  /* intro */
+  .tl-intro { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 0 auto 1.5rem; max-width: 1360px; padding: 0 1rem; }
+  .tl-intro__count { font-family: var(--font-body), serif; color: var(--tl-ink-soft); font-size: 0.95rem; }
+  .tl-intro__hint { font-family: var(--font-accent), serif; font-style: italic; color: var(--tl-ink-soft); font-size: 0.95rem; }
+
+  /* layout: osa + rejstřík ér */
+  .tl-chronicle { position: relative; max-width: 1360px; margin: 0 auto; padding: 0 1rem 6rem; }
+  @media (min-width: 1080px) {
+    .tl-chronicle { display: grid; grid-template-columns: minmax(0, 1fr) 250px; column-gap: clamp(1.5rem, 4vw, 3.5rem); align-items: start; }
+  }
+  .tl-stage { position: relative; min-width: 0; }
+
+  /* éra (kapitola) */
+  .tl-era { position: relative; padding-top: 4.5rem; scroll-margin-top: 1.5rem; }
+  .tl-era:first-of-type { padding-top: 1rem; }
+  .tl-era__head { text-align: center; padding: 2.4rem 1rem 2.6rem; margin-bottom: 0.8rem; }
+  .tl-era__ornament { color: var(--tl-gold); margin: 0 auto 1.2rem; display: block; }
+  .tl-era__ornament svg { width: clamp(120px, 24vw, 240px); height: auto; display: block; margin: 0 auto; }
+  .tl-era__index { font-family: var(--font-accent), serif; font-style: italic; color: var(--tl-primary); font-size: clamp(0.9rem, 0.85rem + 0.3vw, 1.05rem); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 0.4rem; }
+  .tl-era__name { font-family: var(--font-heading), serif; font-weight: 700; font-size: clamp(1.6rem, 0.7rem + 4.6vw, 4rem); line-height: 1.04; letter-spacing: 0.01em; margin: 0 auto; color: var(--tl-ink); max-width: 16ch; text-wrap: balance; }
+  .tl-era__flourish { display: flex; align-items: center; justify-content: center; gap: 0.7rem; margin: 0.9rem auto 0; width: min(320px, 70vw); color: var(--tl-gold); }
+  .tl-era__flourish::before, .tl-era__flourish::after { content: ""; height: 1px; flex: 1; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--tl-gold) 55%, transparent), transparent); }
+  .tl-era__flourish svg { width: 11px; height: 11px; flex: none; opacity: 0.85; }
+  .tl-era__meta { font-family: var(--font-accent), serif; color: var(--tl-ink-soft); margin-top: 0.9rem; font-size: clamp(0.98rem, 0.95rem + 0.2vw, 1.1rem); }
+  .tl-era__meta .tl-years { font-family: var(--font-heading), serif; font-weight: 500; letter-spacing: 0.03em; color: var(--tl-primary); }
+
+  /* páteř */
+  .tl-track { position: relative; }
+  .tl-spine { position: absolute; top: 0; bottom: 0; left: 22px; width: 8px; pointer-events: none; }
+  .tl-spine__line { position: absolute; top: 0; bottom: 0; width: var(--tl-spine-w); border-radius: 2px; transform-origin: top center; transform: scaleY(0); }
+  .tl-spine__line--wine { left: 1px; background: var(--tl-primary); opacity: 0.72; }
+  .tl-spine__line--gold { left: 5px; background: var(--tl-gold); opacity: 0.9; }
+
+  /* uzel (rok) */
+  .tl-node { position: relative; padding-left: 64px; margin-bottom: 2.4rem; opacity: 0; transform: translateY(24px); transition: opacity 0.8s var(--tl-ease), transform 0.8s var(--tl-ease); }
+  .tl-node.in { opacity: 1; transform: none; }
+  .tl-node__dot { position: absolute; left: 14px; top: 6px; width: 24px; height: 24px; border-radius: 50%; background: var(--tl-surface-2); border: 2px solid var(--tl-gold); box-shadow: 0 0 0 4px hsl(var(--background) / 0.9), 0 1px 3px rgb(0 0 0 / 0.25); display: grid; place-items: center; transition: transform 0.5s var(--tl-ease), box-shadow 0.5s var(--tl-ease), border-color 0.5s var(--tl-ease), background 0.5s var(--tl-ease); }
+  .tl-node__dot::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--tl-primary); transition: background 0.5s var(--tl-ease); }
+  .tl-node[data-highlight="positive"] .tl-node__dot { border-color: var(--tl-positive); }
+  .tl-node[data-highlight="positive"] .tl-node__dot::after { background: var(--tl-positive); }
+  .tl-node[data-highlight="negative"] .tl-node__dot { border-color: var(--tl-negative); }
+  .tl-node[data-highlight="negative"] .tl-node__dot::after { background: var(--tl-negative); }
+
+  .tl-node__card { position: relative; background: var(--tl-surface); border: 1px solid var(--tl-border); border-radius: var(--radius); box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); transition: box-shadow 0.5s var(--tl-ease), transform 0.5s var(--tl-ease), border-color 0.5s var(--tl-ease), opacity 0.5s var(--tl-ease), filter 0.5s var(--tl-ease); overflow: hidden;
+    /* jemný horní proužek v barvě panovníka */
+    border-top: 3px solid color-mix(in srgb, var(--rc, var(--tl-border)) 62%, var(--tl-border)); }
+  .tl-node__trigger { display: grid; width: 100%; grid-template-columns: 1fr auto; grid-template-areas: "year chev" "head chev"; column-gap: 0.9rem; row-gap: 0.5rem; align-items: start; background: none; border: 0; margin: 0; padding: 1.1rem 1.3rem 1.2rem; cursor: pointer; color: inherit; font: inherit; text-align: left; }
+  .tl-node__year { grid-area: year; align-self: center; font-family: var(--font-heading), serif; font-weight: 700; font-size: clamp(1.75rem, 1.3rem + 1.5vw, 2.7rem); line-height: 0.98; color: var(--tl-primary); letter-spacing: 0.005em; text-wrap: balance; transform-origin: left center; }
+  .tl-node.in .tl-node__year { animation: tlYearPop 0.9s var(--tl-ease) both; }
+  @keyframes tlYearPop { 0% { transform: scale(0.9); opacity: 0; } 60% { opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+  .tl-node__head { grid-area: head; min-width: 0; }
+  .tl-node__ruler { font-family: var(--font-accent), serif; font-style: italic; font-size: 0.86rem; color: var(--tl-ink-soft); margin: 0 0 0.4rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .tl-node__ruler .rdot { width: 9px; height: 9px; border-radius: 999px; flex: none; box-shadow: 0 0 0 1px var(--tl-surface), 0 0 0 2px currentColor; }
+  .tl-node__cats { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.45rem; }
+  .tl-node__snippet { display: block; font-family: var(--font-body), serif; font-size: clamp(1.02rem, 0.98rem + 0.25vw, 1.18rem); line-height: 1.4; margin: 0; color: var(--tl-ink); max-width: 60ch; }
+  .tl-node__count { font-family: var(--font-accent), serif; font-style: italic; color: var(--tl-ink-soft); font-size: 0.9rem; display: block; margin-top: 0.5rem; }
+  .tl-node__chev { grid-area: chev; align-self: start; margin-top: 0.3rem; width: 20px; height: 20px; color: var(--tl-gold); transition: transform 0.6s var(--tl-ease); flex: none; }
+
+  .tl-node__card:hover { box-shadow: 0 10px 25px rgb(0 0 0 / 0.16); transform: translateY(-2px); border-color: var(--tl-gold); }
+  .tl-node:hover .tl-node__dot, .tl-node:focus-within .tl-node__dot { transform: scale(1.14); box-shadow: 0 0 0 4px hsl(var(--background) / 0.9), 0 0 0 8px color-mix(in srgb, var(--tl-gold) 25%, transparent), 0 2px 5px rgb(0 0 0 / 0.35); }
+
+  /* štítek kategorie */
+  .tl-chip { display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--font-accent), serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.14rem 0.6rem 0.18rem; border-radius: 999px; background: color-mix(in srgb, var(--tl-chip) 12%, var(--tl-surface-2)); color: color-mix(in srgb, var(--tl-chip) 50%, var(--tl-ink)); border: 1px solid color-mix(in srgb, var(--tl-chip) 32%, transparent); line-height: 1; white-space: nowrap; }
+  .tl-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--tl-chip); flex: none; }
+
+  /* rozbalení roku */
+  .tl-node__panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.7s var(--tl-ease); }
+  .tl-node__panel-inner { overflow: hidden; min-height: 0; }
+  .tl-node.open .tl-node__panel { grid-template-rows: 1fr; }
+  .tl-node.open .tl-node__chev { transform: rotate(180deg); }
+  .tl-node.open .tl-node__card { border-color: var(--tl-gold); box-shadow: 0 10px 25px rgb(0 0 0 / 0.16); }
+
+  .tl-panel-body { padding: 0.2rem 1.3rem 1.3rem; border-top: 1px solid var(--tl-border); margin-top: 0.2rem; opacity: 0; transform: translateY(8px); transition: opacity 0.6s var(--tl-ease) 0.12s, transform 0.6s var(--tl-ease) 0.12s; }
+  .tl-node.open .tl-panel-body { opacity: 1; transform: none; }
+
+  .tl-grp { padding: 0.9rem 0 0.2rem; }
+  .tl-grp + .tl-grp { border-top: 1px dashed color-mix(in srgb, var(--tl-border) 80%, transparent); }
+  .tl-grp__label { display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-accent), serif; font-style: italic; color: var(--tl-ink-soft); font-size: 0.95rem; margin: 0 0 0.55rem; }
+  .tl-grp__label .gdot { width: 9px; height: 9px; border-radius: 50%; background: var(--tl-evc, var(--tl-gold)); flex: none; }
+  .tl-ev { padding: 0.4rem 0 0.6rem 1.1rem; position: relative; }
+  .tl-ev + .tl-ev { border-top: 1px dotted color-mix(in srgb, var(--tl-border) 60%, transparent); }
+  .tl-ev::before { content: ""; position: absolute; left: 0; top: 0.7rem; width: 6px; height: 6px; border-radius: 50%; background: var(--tl-evc, var(--tl-gold)); }
+  .tl-ev__head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.2rem; }
+  .tl-ev__date { font-family: var(--font-heading), serif; font-weight: 600; font-size: 0.95rem; color: var(--tl-primary); }
+  .tl-ev__flag { font-family: var(--font-accent), serif; font-style: italic; font-size: 0.8rem; padding: 0.04rem 0.5rem; border-radius: 999px; letter-spacing: 0.02em; }
+  .tl-ev__flag--positive { color: var(--tl-positive); border: 1px solid color-mix(in srgb, var(--tl-positive) 40%, transparent); }
+  .tl-ev__flag--negative { color: var(--tl-negative); border: 1px solid color-mix(in srgb, var(--tl-negative) 40%, transparent); }
+  .tl-ev__flag::before { content: "✦ "; }
+  .tl-ev__text { margin: 0; font-family: var(--font-body), serif; font-size: 0.98rem; color: var(--tl-ink); }
+
+  /* rejstřík ér */
+  .tl-rail { z-index: 30; background: color-mix(in srgb, var(--tl-surface-2) 90%, transparent); border: 1px solid var(--tl-border); border-radius: 14px; box-shadow: 0 6px 20px rgb(0 0 0 / 0.1); padding: 1rem 0.9rem; }
+  @media (min-width: 1080px) { .tl-rail { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem); overflow: auto; backdrop-filter: blur(3px); } }
+  .tl-rail__title { font-family: var(--font-accent), serif; font-style: italic; color: var(--tl-ink-soft); font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; margin: 0 0 0.7rem; padding-left: 0.55rem; }
+  .tl-rail__item { display: flex; align-items: flex-start; gap: 0.7rem; background: none; border: 0; cursor: pointer; padding: 0.5rem 0.55rem; border-radius: 9px; color: var(--tl-ink-soft); font: inherit; text-align: left; width: 100%; transition: color 0.4s var(--tl-ease), background 0.4s var(--tl-ease); }
+  .tl-rail__tick { position: relative; flex: none; margin-top: 0.42rem; width: 16px; height: 2px; border-radius: 2px; background: var(--tl-border); transition: width 0.5s var(--tl-ease), background 0.5s var(--tl-ease); }
+  .tl-rail__text { display: flex; flex-direction: column; gap: 0.08rem; min-width: 0; }
+  .tl-rail__label { font-family: var(--font-heading), serif; font-weight: 500; font-size: 0.86rem; letter-spacing: 0.01em; line-height: 1.16; }
+  .tl-rail__range { font-family: var(--font-accent), serif; font-style: italic; font-size: 0.76rem; color: var(--tl-ink-soft); opacity: 0.85; }
+  .tl-rail__item:hover { color: var(--tl-ink); background: color-mix(in srgb, var(--tl-gold) 12%, transparent); }
+  .tl-rail__item:hover .tl-rail__tick { background: var(--tl-gold); width: 22px; }
+  .tl-rail__item.active { color: var(--tl-primary); }
+  .tl-rail__item.active .tl-rail__label { font-weight: 700; }
+  .tl-rail__item.active .tl-rail__tick { width: 28px; background: var(--tl-primary); }
+  .tl-rail__toggle { display: none; }
+
+  /* ============================================================================
+     MEDAILONY panovníků (DEMO 3, integrované do .tl páteře)
+     ============================================================================ */
+  .tl-medallion {
+    position: absolute; left: 22px; transform: translate(-50%, -50%);
+    z-index: 15; width: 104px; height: 104px;
+    border: 0; padding: 0; margin: 0; background: transparent; cursor: pointer;
+    border-radius: 999px; -webkit-tap-highlight-color: transparent;
+  }
+  .tl-medallion__disc {
+    position: absolute; inset: 0; border-radius: 999px; display: grid; place-items: center;
+    background: radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--rc) 30%, var(--tl-surface)) 0%, var(--tl-surface) 62%);
+    box-shadow:
+      0 0 0 2px hsl(var(--background)),
+      0 0 0 3px color-mix(in srgb, var(--rc) 70%, var(--tl-border)),
+      0 0 0 8px hsl(var(--background)),
+      0 0 0 9px color-mix(in srgb, var(--tl-gold) 60%, transparent),
+      0 10px 26px rgb(0 0 0 / 0.32);
+    transition: transform 0.35s var(--tl-ease), box-shadow 0.35s var(--tl-ease), background 0.3s, opacity 0.35s, filter 0.35s;
+  }
+  .tl-medallion__disc::before { content: ""; position: absolute; inset: 6px; border-radius: 999px; border: 1px dashed color-mix(in srgb, var(--tl-gold) 55%, transparent); opacity: 0.7; }
+  .tl-medallion__mono { font-family: var(--font-heading), serif; font-weight: 700; font-size: 1.45rem; letter-spacing: 0.02em; color: color-mix(in srgb, var(--rc) 55%, var(--tl-ink)); line-height: 1; text-shadow: 0 1px 0 hsl(0 0% 100% / 0.25); }
+  html.dark .tl-medallion__mono { text-shadow: 0 1px 2px hsl(0 0% 0% / 0.5); }
+  .tl-medallion__crown { position: absolute; bottom: calc(100% + 2px); left: 50%; transform: translateX(-50%); color: var(--tl-gold); font-size: 0.95rem; opacity: 0.85; }
+  .tl-medallion__years { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-family: var(--font-accent), serif; font-style: italic; font-size: 0.78rem; color: var(--tl-ink-soft); background: color-mix(in srgb, var(--tl-surface) 85%, transparent); padding: 1px 8px; border-radius: 999px; border: 1px solid var(--tl-border); }
+  .tl-medallion:hover .tl-medallion__disc,
+  .tl-medallion:focus-visible .tl-medallion__disc,
+  .tl-medallion.emph .tl-medallion__disc {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 0 2px hsl(var(--background)),
+      0 0 0 3px color-mix(in srgb, var(--rc) 85%, var(--tl-border)),
+      0 0 0 8px hsl(var(--background)),
+      0 0 0 10px var(--tl-gold),
+      0 0 30px 4px color-mix(in srgb, var(--tl-gold) 45%, transparent),
+      0 14px 34px rgb(0 0 0 / 0.4);
+  }
+  .tl-medallion:focus-visible { outline: none; }
+  .tl-medallion:focus-visible .tl-medallion__disc { outline: 2px solid var(--tl-gold); outline-offset: 6px; }
+  @keyframes tlMedPulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--tl-gold) 70%, transparent); } 70% { box-shadow: 0 0 0 26px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .tl-medallion.pulse .tl-medallion__disc { animation: tlMedPulse 1.1s var(--tl-ease) 2; }
+  @media (prefers-reduced-motion: reduce) { .tl-medallion.pulse .tl-medallion__disc { animation: none; } }
+
+  /* barevná vlečka vlády (reign band) na páteři */
+  .tl-reign {
+    position: absolute; left: 22px; transform: translateX(-50%);
+    width: 30px; border-radius: 999px; z-index: 2; pointer-events: none;
+    background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--rc) 30%, transparent) 8%, color-mix(in srgb, var(--rc) 30%, transparent) 92%, transparent 100%);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--rc) 22%, transparent) inset;
+    opacity: 0.5;
+    transition: opacity 0.35s var(--tl-ease), width 0.35s var(--tl-ease), box-shadow 0.35s var(--tl-ease), filter 0.35s var(--tl-ease);
+  }
+  .tl-reign.alt { opacity: 0.32; }
+  .tl-reign::before, .tl-reign::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); width: 22px; height: 10px; border: 2px solid color-mix(in srgb, var(--rc) 65%, transparent); opacity: 0; transition: opacity 0.35s; }
+  .tl-reign::before { top: -2px; border-bottom: 0; border-radius: 8px 8px 0 0; }
+  .tl-reign::after { bottom: -2px; border-top: 0; border-radius: 0 0 8px 8px; }
+  .tl-reign.emph { opacity: 0.95; width: 40px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--rc) 60%, transparent) inset, 0 0 26px 2px color-mix(in srgb, var(--rc) 55%, transparent); filter: saturate(1.2); }
+  .tl-reign.emph::before, .tl-reign.emph::after { opacity: 0.9; }
+
+  /* zvýraznění panovníkových uzlů */
+  .tl-node.hl .tl-node__dot { transform: scale(1.3); background: var(--tl-gold); border-color: var(--tl-primary); }
+  .tl-node.hl .tl-node__card { transform: translateY(-3px); border-color: var(--tl-gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tl-gold) 70%, transparent), 0 16px 36px rgb(0 0 0 / 0.28); }
+  /* ztlumení ostatních při zvýraznění */
+  .tl-stage.dim .tl-node:not(.hl) .tl-node__card { opacity: 0.34; filter: grayscale(0.35) saturate(0.7); }
+  .tl-stage.dim .tl-node:not(.hl) .tl-node__dot { opacity: 0.35; }
+  .tl-stage.dim .tl-medallion:not(.emph) .tl-medallion__disc { opacity: 0.42; filter: grayscale(0.4); }
+
+  /* ============================================================================
+     LEGENDA PANOVNÍKŮ (plovoucí, sbalitelná — vlevo nahoře)
+     ============================================================================ */
+  .rulers-legend {
+    position: fixed; top: 5.5rem; left: 1rem; z-index: 45; width: 244px;
+    max-width: calc(100vw - 2rem);
+    background: color-mix(in srgb, hsl(var(--popover)) 92%, transparent);
+    backdrop-filter: blur(6px);
+    border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.18); overflow: hidden;
+    transition: box-shadow 0.3s, transform 0.4s var(--night-ease), opacity 0.4s var(--night-ease);
+  }
+  .rulers-legend__head {
+    display: flex; align-items: center; gap: 0.5rem; width: 100%; padding: 0.65rem 0.8rem;
+    background: transparent; border: 0; border-bottom: 1px solid hsl(var(--border)); cursor: pointer;
+    font-family: var(--font-heading), serif; font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+    color: hsl(var(--primary)); text-align: left;
+  }
+  .rulers-legend__head .crest { color: hsl(var(--accent)); font-size: 0.95rem; }
+  .rulers-legend__head .chev { margin-left: auto; transition: transform 0.35s var(--night-ease); font-size: 0.7rem; color: hsl(var(--muted-foreground)); }
+  .rulers-legend.collapsed .chev { transform: rotate(-90deg); }
+  .rulers-legend__head:focus-visible { outline: 2px solid hsl(var(--accent)); outline-offset: -2px; }
+  .rulers-legend__body { max-height: 62vh; overflow: auto; transition: max-height 0.4s var(--night-ease), opacity 0.3s; padding: 0.35rem; }
+  .rulers-legend.collapsed .rulers-legend__body { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
+  .rulers-legend__item {
+    display: flex; align-items: center; gap: 0.55rem; width: 100%; padding: 0.4rem 0.5rem;
+    border: 1px solid transparent; border-radius: calc(var(--radius) - 2px); background: transparent; cursor: pointer;
+    text-align: left; color: hsl(var(--foreground)); font-family: var(--font-body), serif;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s var(--night-ease);
+  }
+  .rulers-legend__item:hover, .rulers-legend__item:focus-visible, .rulers-legend__item.emph {
+    background: color-mix(in srgb, hsl(var(--accent)) 18%, transparent);
+    border-color: color-mix(in srgb, hsl(var(--accent)) 50%, transparent);
+    transform: translateX(3px); outline: none;
+  }
+  .rulers-legend__item.onscreen { background: color-mix(in srgb, hsl(var(--accent)) 12%, transparent); border-color: color-mix(in srgb, hsl(var(--accent)) 42%, transparent); }
+  .rulers-legend__dot { width: 14px; height: 14px; border-radius: 999px; flex: 0 0 auto; box-shadow: 0 0 0 2px hsl(var(--popover)), 0 0 0 3px currentColor; }
+  .rulers-legend__label { display: flex; flex-direction: column; line-height: 1.15; }
+  .rulers-legend__name { font-weight: 600; font-size: 0.92rem; color: hsl(var(--foreground)); }
+  .rulers-legend__years { font-family: var(--font-accent), serif; font-style: italic; font-size: 0.78rem; color: hsl(var(--muted-foreground)); }
+  @media (max-width: 1079px) { .rulers-legend { top: auto; bottom: 4.2rem; } }
+
+  /* ============================================================================
+     PATIČKA (Footer.tsx)
+     ============================================================================ */
+  footer.site-footer { margin-top: 3rem; border-top: 1px solid hsl(var(--border) / 0.5); padding: 1.5rem 0; text-align: center; position: relative; z-index: 1; }
+  .footer__inner { margin: 0 auto; display: flex; max-width: 1400px; flex-direction: column; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0 1rem; font-size: 0.75rem; color: hsl(var(--muted-foreground)); }
+  @media (min-width: 768px) { .footer__inner { flex-direction: row; font-size: 0.875rem; } }
+  .footer__nav { display: flex; gap: 1rem; }
+  .footer__nav a:hover { color: hsl(var(--foreground)); }
+
+  /* ============================================================================
+     RESPONSIVE (dle timeline.css) — desktop centrovaná páteř + střídání stran
+     ============================================================================ */
+  @media (min-width: 880px) {
+    .tl-spine { left: 50%; transform: translateX(-50%); }
+    .tl-reign { left: 50%; }
+    .tl-medallion { left: 50%; }
+    .tl-node { width: calc(50% - 42px); padding-left: 0; margin-bottom: 3.2rem; }
+    .tl-node--left { margin-right: auto; }
+    .tl-node--right { margin-left: auto; }
+    .tl-node__dot { left: auto; top: 14px; }
+    .tl-node--left .tl-node__dot { right: -53px; left: auto; }
+    .tl-node--right .tl-node__dot { left: -53px; right: auto; }
+    .tl-node__card::before { content: ""; position: absolute; top: 20px; width: 30px; height: 1px; background: var(--tl-border); }
+    .tl-node--left .tl-node__card::before { right: -31px; }
+    .tl-node--right .tl-node__card::before { left: -31px; }
+    .tl-node--left .tl-node__trigger { grid-template-columns: auto 1fr; grid-template-areas: "chev year" "chev head"; text-align: right; }
+    .tl-node--left .tl-node__cats { justify-content: flex-end; }
+    .tl-node--left .tl-node__snippet { margin-left: auto; }
+    .tl-node--left .tl-node__year { transform-origin: right center; }
+    .tl-node--left .tl-node__count { text-align: right; }
+    .tl-node--left .tl-node__ruler { flex-direction: row-reverse; }
+    .tl-node--left .tl-panel-body { text-align: left; }
+  }
+  @media (max-width: 879px) {
+    .tl-era__head { padding-left: 0.5rem; padding-right: 0.5rem; }
+    .tl-era__name { max-width: 100%; font-size: clamp(1.45rem, 6.2vw, 2.9rem); letter-spacing: 0; overflow-wrap: anywhere; }
+    .tl-medallion { width: 84px; height: 84px; }
+    .tl-medallion__mono { font-size: 1.15rem; }
+  }
+
+  /* rejstřík ér jako spodní lišta pod 1080px */
+  @media (max-width: 1079px) {
+    .tl-rail { position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; border-radius: 14px 14px 0 0; padding: 0.6rem 0.8rem; transform: translateY(0); transition: transform 0.5s var(--tl-ease); backdrop-filter: blur(3px); }
+    .tl-rail.collapsed { transform: translateY(calc(100% - 42px)); }
+    .tl-rail__title { display: none; }
+    .tl-rail__list { display: flex; flex-direction: row; flex-wrap: nowrap; gap: 0.4rem; overflow-x: auto; scrollbar-width: thin; }
+    .tl-rail__item { flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.3rem 0.55rem; min-width: 84px; flex: none; }
+    .tl-rail__tick { margin-top: 0; width: 22px; }
+    .tl-rail__item.active .tl-rail__tick { width: 30px; }
+    .tl-rail__text { align-items: center; text-align: center; }
+    .tl-rail__label { font-size: 0.72rem; line-height: 1.12; }
+    .tl-rail__range { display: none; }
+    .tl-rail__toggle { display: flex; align-items: center; justify-content: center; position: absolute; top: -34px; right: 0.8rem; height: 32px; padding: 0 0.8rem; gap: 0.4rem; background: var(--tl-surface-2); border: 1px solid var(--tl-border); border-bottom: 0; border-radius: 10px 10px 0 0; font-family: var(--font-accent), serif; font-style: italic; font-size: 0.82rem; color: var(--tl-ink-soft); cursor: pointer; box-shadow: 0 -3px 10px rgb(0 0 0 / 0.1); }
+  }
+
+  /* omezený pohyb */
+  @media (prefers-reduced-motion: reduce) {
+    .tl-node { opacity: 1; transform: none; transition: none; }
+    .tl-node.in .tl-node__year { animation: none; }
+    .tl-spine__line { transform: scaleY(1) !important; }
+    .tl-node__panel { transition: grid-template-rows 0.001s; }
+    .tl-panel-body { transition: none; opacity: 1; transform: none; }
+    .tl-era__ornament { transform: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- pergamenová šumová vrstva (PublicLayout NOISE overlay) -->
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <!-- pevné noční pozadí za herem (TimelineNight) -->
+  <div class="tl-night night-scene" id="tlNight" aria-hidden="true">
+    <div class="night-scene__grad"></div>
+    <div class="night-scene__nebula night-scene__nebula--a"></div>
+    <div class="night-scene__nebula night-scene__nebula--b"></div>
+    <div class="night-scene__stars" id="starsBase"></div>
+    <div class="night-scene__stars" id="twinkles"></div>
+    <!-- silueta Hradčan na horizontu -->
+    <svg class="night-scene__hradcany" viewBox="0 0 1500 210" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+      <path class="rb" d="M0 210 V150 H60 V128 H96 V150 H150 V96 L182 66 L214 96 V150 H262 V120 H300 V150 H360 V110 H392 V80 H420 V110 H452 V150 H520 V132 H560 V150 H1500 V210 Z"></path>
+      <path class="rf" d="M560 210 V120 H600 V96 H640 V72 L680 42 L720 72 V96 H760 V120 H812 V150 H860 V128 H900 V150 H980 V108 H1016 V150 H1080 V126 H1120 V150 H1220 V138 H1260 V150 H1360 V128 H1400 V150 H1500 V210 Z"></path>
+      <rect class="gl" x="176" y="112" width="6" height="9"></rect>
+      <rect class="gl" x="200" y="120" width="6" height="8"></rect>
+      <rect class="gl" x="676" y="90" width="6" height="10"></rect>
+      <rect class="gl" x="700" y="100" width="6" height="9"></rect>
+      <rect class="gl" x="994" y="128" width="5" height="8"></rect>
+      <rect class="gl" x="1240" y="150" width="5" height="8"></rect>
+    </svg>
+  </div>
+
+  <div class="app__inner">
+    <!-- ================= HLAVIČKA ================= -->
+    <header class="site-header">
+      <div class="header__tools">
+        <button class="icon-btn" id="lockBtn" aria-label="Přihlášení administrátora" title="Admin (zámeček)">&#128274;</button>
+        <button class="icon-btn" id="themeToggle" aria-label="Přepnout světlý/tmavý režim" title="Přepnout režim" aria-pressed="false">&#9790;</button>
+      </div>
+
+      <div class="header__band header-anchor">
+        <div class="header__crown-wrap">
+          <svg class="header__crown" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z" /><path d="M5 20h14" />
+          </svg>
+        </div>
+        <h1 class="header__title">DĚJINY KORUNY ČESKÉ</h1>
+
+        <div class="header__shields">
+          <img src="https://hujighhlnmuokjvtveru.supabase.co/storage/v1/object/public/page-content/header/znak_1.png" alt="Znak 1" loading="lazy" />
+          <img src="https://hujighhlnmuokjvtveru.supabase.co/storage/v1/object/public/page-content/header/znak_2.png" alt="Znak 2" loading="lazy" />
+          <img src="https://hujighhlnmuokjvtveru.supabase.co/storage/v1/object/public/page-content/header/znak_3.png" alt="Znak 3" loading="lazy" />
+          <img src="https://hujighhlnmuokjvtveru.supabase.co/storage/v1/object/public/page-content/header/znak_4.png" alt="Znak 4" loading="lazy" />
+          <img src="https://hujighhlnmuokjvtveru.supabase.co/storage/v1/object/public/page-content/header/znak_5.png" alt="Znak 5" loading="lazy" />
+        </div>
+
+        <nav class="header__nav" aria-label="Hlavní navigace">
+          <a href="#" aria-current="page">Události</a>
+          <a href="#">Popis</a>
+          <a href="#">Vysvětlivky</a>
+          <a href="#">Kalendář</a>
+          <a href="#">Verze</a>
+        </nav>
+      </div>
+
+      <div class="header__sep"></div>
+    </header>
+
+    <main class="app__main">
+      <!-- ================= NOČNÍ HERO (Časová osa) ================= -->
+      <section class="tl-hero" id="tlHero" aria-label="Časová osa">
+        <div class="tl-hero__content">
+          <svg class="tl-hero__crown" viewBox="0 0 120 90" fill="none" aria-hidden="true">
+            <path d="M12 74 L18 30 L38 52 L60 18 L82 52 L102 30 L108 74 Z" fill="currentColor" fill-opacity="0.16" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" />
+            <circle cx="18" cy="26" r="6" fill="currentColor" />
+            <circle cx="60" cy="12" r="7" fill="currentColor" />
+            <circle cx="102" cy="26" r="6" fill="currentColor" />
+            <rect x="10" y="74" width="100" height="9" rx="3" fill="currentColor" fill-opacity="0.85" />
+            <path d="M60 34 l4 8 l-4 8 l-4 -8 z" fill="#D64545" />
+          </svg>
+          <p class="tl-hero__kicker">Iluminovaná kronika pod hvězdami</p>
+          <h1 class="tl-hero__title"><span>Časová</span> <span class="accent">osa</span></h1>
+          <div class="tl-hero__rule" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" /></svg>
+          </div>
+          <p class="tl-hero__sub">Od věstonické venuše po Evropskou unii. Příběh země, jejích panovníků a osudových let.</p>
+        </div>
+        <button type="button" class="tl-hero__scroll" id="heroScroll">
+          <span>Pokračovat</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+      </section>
+
+      <!-- ================= PŘEPÍNAČ ZOBRAZENÍ ================= -->
+      <div class="view-wrap" id="chronicleTop">
+        <div class="view-toggle" role="tablist" aria-label="Zobrazení událostí" data-night-chrome>
+          <button role="tab" aria-selected="false" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+            Tabulka
+          </button>
+          <button role="tab" aria-selected="true" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><path d="M6 8v8M11 6h9M11 18h9"/></svg>
+            Časová osa
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= KRONIKA (časová osa) ================= -->
+      <div class="tl">
+        <div class="tl-intro">
+          <span class="tl-intro__count" id="tlCount"></span>
+          <span class="tl-intro__hint">Klikněte na rok pro rozbalení událostí · najeďte na medailon panovníka</span>
+        </div>
+
+        <div class="tl-chronicle">
+          <div class="tl-stage" id="stage">
+            <!-- éry, páteř, medailony, spany a uzly doplní JS -->
+          </div>
+
+          <!-- rejstřík ér (kapitoly) -->
+          <nav class="tl-rail" id="eraRail" aria-label="Přeskoky mezi érami">
+            <button type="button" class="tl-rail__toggle" id="railToggle" aria-expanded="true">
+              <span id="railToggleLabel">Skrýt</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <p class="tl-rail__title">Kapitoly kroniky</p>
+            <div class="tl-rail__list" id="railList"></div>
+          </nav>
+        </div>
+      </div>
+    </main>
+
+    <!-- ================= PATIČKA ================= -->
+    <footer class="site-footer">
+      <div class="footer__inner">
+        <p>© <span id="footerYear"></span> Dějiny Koruny české</p>
+        <nav class="footer__nav">
+          <a href="#">O projektu</a>
+          <a href="#">Verze</a>
+          <a href="#">Admin</a>
+        </nav>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- ================= LEGENDA PANOVNÍKŮ (plovoucí) ================= -->
+<aside class="rulers-legend" id="rulersLegend" aria-label="Rejstřík panovníků">
+  <button class="rulers-legend__head" id="legendHead" aria-expanded="true" aria-controls="legendBody">
+    <span class="crest">&#9819;</span>
+    <span>Panovníci</span>
+    <span class="chev">&#9662;</span>
+  </button>
+  <div class="rulers-legend__body" id="legendBody"></div>
+</aside>
+
+<script>
+"use strict";
+
+/* ===================== DATA (VERBATIM z demo-3-medailony.html) ===================== */
+const RULERS = [
+  { id:1, name:'Bořivoj I.',   from:872, to:889, house:'Přemyslovci', epithet:'první křesťanský kníže', mono:'BI' },
+  { id:2, name:'Spytihněv I.', from:894, to:915, house:'Přemyslovci', epithet:'', mono:'SI' },
+  { id:3, name:'Vratislav I.', from:915, to:921, house:'Přemyslovci', epithet:'', mono:'VI' },
+  { id:4, name:'sv. Václav',   from:921, to:935, house:'Přemyslovci', epithet:'zemský patron', mono:'V' },
+  { id:5, name:'Boleslav I.',  from:935, to:972, house:'Přemyslovci', epithet:'Ukrutný', mono:'BI' },
+  { id:6, name:'Boleslav II.', from:972, to:999, house:'Přemyslovci', epithet:'Pobožný', mono:'BII' },
+];
+const NODES = [
+  { year:874, rulerId:1, events:[{cat:'domestic', text:'Bořivoj přijímá křest od arcibiskupa Metoděje na Moravě', highlight:'positive'}] },
+  { year:883, rulerId:1, events:[{cat:'place', text:'Přenesení sídla z Levého Hradce na Pražský hrad'},{cat:'arts', text:'Stavba kostela Panny Marie na Hradě'}] },
+  { year:895, rulerId:2, events:[{cat:'foreign', text:'Čeští předáci se v Řezně poddávají Východofranské říši'}] },
+  { year:908, rulerId:2, events:[{cat:'arts', text:'Rozvoj hradiště a řemesel'}] },
+  { year:915, rulerId:3, events:[{cat:'domestic', text:'Nástup knížete Vratislava I.'}] },
+  { year:921, rulerId:4, events:[{cat:'domestic', text:'Nástup Václava; regentství kněžny Drahomíry'},{cat:'person', text:'Babička sv. Ludmila'}] },
+  { year:929, rulerId:4, events:[{cat:'foreign', text:'Vpád Jindřicha Ptáčníka, uzavření míru'},{cat:'arts', text:'Založení rotundy sv. Víta na Hradě'}] },
+  { year:935, rulerId:4, events:[{cat:'domestic', text:'Vražda knížete Václava ve Staré Boleslavi', highlight:'negative'}] },
+  { year:950, rulerId:5, events:[{cat:'foreign', text:'Boleslav I. uznává svrchovanost Oty I.'}] },
+  { year:955, rulerId:5, events:[{cat:'foreign', text:'Bitva na řece Lechu — účast českých oddílů', highlight:'positive'}] },
+  { year:965, rulerId:5, events:[{cat:'person', text:'Zpráva kupce Ibráhíma ibn Jákúba o Praze'}] },
+  { year:973, rulerId:6, events:[{cat:'arts', text:'Založení pražského biskupství', highlight:'positive'}] },
+  { year:982, rulerId:6, events:[{cat:'person', text:'Vojtěch Slavníkovec zvolen pražským biskupem'}] },
+  { year:995, rulerId:6, events:[{cat:'domestic', text:'Vyvraždění Slavníkovců na Libici', highlight:'negative'}] },
+];
+
+const CAT_LABEL = {
+  foreign:  'Zahraniční politika',
+  domestic: 'Domácí politika',
+  arts:     'Vzdělanost a umění',
+  person:   'Osobnosti',
+  place:    'Místa',
+};
+const CAT_VAR = {
+  foreign:'var(--cat-foreign)', domestic:'var(--cat-domestic)', arts:'var(--cat-arts)',
+  person:'var(--cat-person)', place:'var(--cat-place)',
+};
+const HL_LABEL = { positive:'světlá chvíle', negative:'temná hodina' };
+
+/* per-panovník odstín (heraldicky laděná paleta) */
+const RULER_HUE = {
+  1:'hsl(210 45% 46%)',
+  2:'hsl(150 34% 40%)',
+  3:'hsl(28 62% 48%)',
+  4:'hsl(0 62% 45%)',
+  5:'hsl(268 32% 50%)',
+  6:'hsl(190 40% 42%)',
+};
+
+/* ===================== KAPITOLY (éry) ===================== */
+const ERAS = [
+  { id:'era-1', index:'Kapitola I',  name:'Úsvit přemyslovského státu', from:872, to:935, rangeLabel:'872–935', ornament:0 },
+  { id:'era-2', index:'Kapitola II', name:'Vzestup českého knížectví',  from:936, to:999, rangeLabel:'936–999', ornament:2 },
+];
+/* ornamenty ér (VERBATIM z EraOrnament.tsx) */
+const ORNAMENTS = [
+  '<svg viewBox="0 0 220 60" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M0 30h70" stroke-linecap="round"/><path d="M150 30h70" stroke-linecap="round"/><path d="M110 12c9 0 16 8 16 18s-7 18-16 18-16-8-16-18c0-6 3-11 8-14" fill="none"/><circle cx="110" cy="30" r="4" fill="currentColor" stroke="none"/><path d="M96 46c4-4 24-4 28 0"/></svg>',
+  '<svg viewBox="0 0 220 60" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M0 30h84" stroke-linecap="round"/><path d="M136 30h84" stroke-linecap="round"/><circle cx="110" cy="30" r="15"/><path d="M110 12v36M95 30h30" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 220 60" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M0 30h74" stroke-linecap="round"/><path d="M146 30h74" stroke-linecap="round"/><path d="M96 40c6-14 12-20 14-24 2 4 8 10 14 24" fill="none" stroke-linejoin="round"/><path d="M100 34c4-2 6-2 10-2 4 0 6 0 10 2M104 28c3-1 4-1 6-1s3 0 6 1" stroke-linecap="round"/></svg>',
+];
+const FLOURISH_SVG = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>';
+
+const rulerById = id => RULERS.find(r => r.id === id);
+
+/* ===================== BUILD DOM ===================== */
+const stage = document.getElementById('stage');
+const legendBody = document.getElementById('legendBody');
+const railList = document.getElementById('railList');
+
+/* mapy pro obousměrné zvýraznění */
+const nodesByRuler = {};
+const medallionByRuler = {};
+const spanByRuler = {};
+const legendItemByRuler = {};
+const nodeEls = [];
+const eraEls = {};
+RULERS.forEach(r => { nodesByRuler[r.id] = []; });
+
+/* --- intro count --- */
+const evCount = NODES.reduce((s, n) => s + n.events.length, 0);
+document.getElementById('tlCount').textContent =
+  `${NODES.length} let · ${evCount} událostí · ${RULERS.length} panovníků`;
+document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+/* --- legenda panovníků --- */
+RULERS.forEach(r => {
+  const btn = document.createElement('button');
+  btn.className = 'rulers-legend__item';
+  btn.type = 'button';
+  btn.style.color = RULER_HUE[r.id];
+  btn.setAttribute('data-ruler', r.id);
+  btn.innerHTML =
+    `<span class="rulers-legend__dot" style="background:${RULER_HUE[r.id]}"></span>` +
+    `<span class="rulers-legend__label">` +
+      `<span class="rulers-legend__name">${r.name}</span>` +
+      `<span class="rulers-legend__years">${r.from}–${r.to}${r.epithet ? ' · ' + r.epithet : ''}</span>` +
+    `</span>`;
+  btn.addEventListener('mouseenter', () => highlightRuler(r.id));
+  btn.addEventListener('mouseleave', clearHighlight);
+  btn.addEventListener('focus', () => highlightRuler(r.id));
+  btn.addEventListener('blur', clearHighlight);
+  btn.addEventListener('click', () => scrollToMedallion(r.id, true));
+  legendBody.appendChild(btn);
+  legendItemByRuler[r.id] = btn;
+});
+
+/* --- rejstřík ér (rail) --- */
+ERAS.forEach(era => {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'tl-rail__item';
+  btn.setAttribute('data-era', era.id);
+  btn.setAttribute('aria-label', `Přejít na kapitolu ${era.name}, ${era.rangeLabel}`);
+  btn.innerHTML =
+    `<span class="tl-rail__tick" aria-hidden="true"></span>` +
+    `<span class="tl-rail__text">` +
+      `<span class="tl-rail__label">${era.name}</span>` +
+      `<span class="tl-rail__range">${era.rangeLabel}</span>` +
+    `</span>`;
+  btn.addEventListener('click', () => {
+    const target = eraEls[era.id];
+    if (target) target.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+  });
+  railList.appendChild(btn);
+});
+
+/* --- helper: postav uzel (rok) --- */
+function buildNode(n, sideIndex) {
+  const ruler = rulerById(n.rulerId);
+  const side = sideIndex % 2 === 0 ? 'left' : 'right';
+  const node = document.createElement('article');
+  node.className = `tl-node tl-node--${side}`;
+  node.style.setProperty('--rc', RULER_HUE[n.rulerId]);
+  node.setAttribute('data-ruler', n.rulerId);
+  node.setAttribute('data-year', n.year);
+
+  // celkový highlight uzlu (positive převáží negative, jinak dle první události)
+  let hl = null;
+  n.events.forEach(e => { if (e.highlight) hl = e.highlight; });
+  if (hl) node.setAttribute('data-highlight', hl);
+
+  // kategorie přítomné v uzlu (unikátní, v pořadí výskytu)
+  const cats = [];
+  n.events.forEach(e => { if (!cats.includes(e.cat)) cats.push(e.cat); });
+  const chipsHtml = cats.map(c =>
+    `<span class="tl-chip" style="--tl-chip:${CAT_VAR[c]}">${CAT_LABEL[c]}</span>`
+  ).join('');
+
+  // seskupení událostí podle kategorie (jako v reálné ose)
+  const byCat = {};
+  n.events.forEach(e => { (byCat[e.cat] = byCat[e.cat] || []).push(e); });
+  let panelHtml = '';
+  cats.forEach(c => {
+    const evs = byCat[c].map(e => {
+      const flag = e.highlight
+        ? `<span class="tl-ev__flag tl-ev__flag--${e.highlight}">${HL_LABEL[e.highlight]}</span>` : '';
+      return `<div class="tl-ev">` +
+               `<div class="tl-ev__head"><span class="tl-ev__date">${n.year}</span>${flag}</div>` +
+               `<p class="tl-ev__text">${e.text}</p>` +
+             `</div>`;
+    }).join('');
+    panelHtml +=
+      `<div class="tl-grp" style="--tl-evc:${CAT_VAR[c]}">` +
+        `<p class="tl-grp__label"><span class="gdot"></span>${CAT_LABEL[c]}</p>` +
+        evs +
+      `</div>`;
+  });
+
+  const chevSvg = `<svg class="tl-node__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>`;
+
+  node.innerHTML =
+    `<span class="tl-node__dot" aria-hidden="true"></span>` +
+    `<div class="tl-node__card">` +
+      `<button class="tl-node__trigger" type="button" aria-expanded="false">` +
+        `<span class="tl-node__year">${n.year}</span>` +
+        chevSvg +
+        `<div class="tl-node__head">` +
+          `<p class="tl-node__ruler"><span class="rdot" style="color:${RULER_HUE[n.rulerId]};background:${RULER_HUE[n.rulerId]}"></span>${ruler.name}</p>` +
+          `<div class="tl-node__cats">${chipsHtml}</div>` +
+          `<span class="tl-node__snippet">${n.events[0].text}</span>` +
+          `<span class="tl-node__count">${n.events.length} ${n.events.length === 1 ? 'událost' : (n.events.length < 5 ? 'události' : 'událostí')} · rozbalit</span>` +
+        `</div>` +
+      `</button>` +
+      `<div class="tl-node__panel"><div class="tl-node__panel-inner"><div class="tl-panel-body">${panelHtml}</div></div></div>` +
+    `</div>`;
+
+  const trigger = node.querySelector('.tl-node__trigger');
+  trigger.addEventListener('click', () => {
+    const open = node.classList.toggle('open');
+    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  // obousměrné zvýraznění: hover/focus uzlu -> zvýrazni panovníka
+  node.addEventListener('mouseenter', () => highlightRuler(n.rulerId));
+  node.addEventListener('mouseleave', clearHighlight);
+  trigger.addEventListener('focus', () => highlightRuler(n.rulerId));
+  trigger.addEventListener('blur', clearHighlight);
+
+  nodesByRuler[n.rulerId].push(node);
+  nodeEls.push(node);
+  return node;
+}
+
+/* --- postav éry s páteří + uzly --- */
+let globalSideIndex = 0;
+ERAS.forEach((era, ei) => {
+  const eraEl = document.createElement('section');
+  eraEl.className = 'tl-era';
+  eraEl.id = era.id;
+  eraEls[era.id] = eraEl;
+
+  // hlavička éry
+  const head = document.createElement('div');
+  head.className = 'tl-era__head';
+  head.innerHTML =
+    `<span class="tl-era__ornament" aria-hidden="true">${ORNAMENTS[era.ornament] || ORNAMENTS[ORNAMENTS.length-1]}</span>` +
+    `<p class="tl-era__index">${era.index}</p>` +
+    `<h2 class="tl-era__name">${era.name}</h2>` +
+    `<div class="tl-era__flourish" aria-hidden="true">${FLOURISH_SVG}</div>` +
+    `<p class="tl-era__meta">Léta páně <span class="tl-years">${era.rangeLabel}</span></p>`;
+  eraEl.appendChild(head);
+
+  // track s páteří
+  const track = document.createElement('div');
+  track.className = 'tl-track';
+  track.setAttribute('data-era', era.id);
+
+  const spine = document.createElement('div');
+  spine.className = 'tl-spine';
+  spine.setAttribute('aria-hidden', 'true');
+  spine.innerHTML = `<span class="tl-spine__line tl-spine__line--wine"></span><span class="tl-spine__line tl-spine__line--gold"></span>`;
+  track.appendChild(spine);
+
+  // uzly této éry
+  const eraNodes = NODES.filter(n => n.year >= era.from && n.year <= era.to);
+  eraNodes.forEach(n => {
+    track.appendChild(buildNode(n, globalSideIndex));
+    globalSideIndex++;
+  });
+
+  eraEl.appendChild(track);
+  stage.appendChild(eraEl);
+});
+
+/* --- medailony + spany (vytvoří se do příslušného tracku, umístí po layoutu) --- */
+let altToggle = false;
+RULERS.forEach(r => {
+  const nodes = nodesByRuler[r.id];
+  if (!nodes.length) return;
+  // track = rodič prvního uzlu panovníka
+  const track = nodes[0].parentElement;
+
+  const span = document.createElement('div');
+  span.className = 'tl-reign' + (altToggle ? ' alt' : '');
+  altToggle = !altToggle;
+  span.style.setProperty('--rc', RULER_HUE[r.id]);
+  span.setAttribute('data-ruler', r.id);
+  track.appendChild(span);
+  spanByRuler[r.id] = span;
+
+  const med = document.createElement('button');
+  med.className = 'tl-medallion';
+  med.type = 'button';
+  med.style.setProperty('--rc', RULER_HUE[r.id]);
+  med.setAttribute('data-ruler', r.id);
+  med.setAttribute('aria-label', `${r.name}, vláda ${r.from}–${r.to}${r.epithet ? ', ' + r.epithet : ''}`);
+  med.innerHTML =
+    `<span class="tl-medallion__crown" aria-hidden="true">&#9819;</span>` +
+    `<span class="tl-medallion__disc"><span class="tl-medallion__mono">${r.mono}</span></span>` +
+    `<span class="tl-medallion__years">${r.from}–${r.to}</span>`;
+  med.addEventListener('mouseenter', () => highlightRuler(r.id));
+  med.addEventListener('mouseleave', clearHighlight);
+  med.addEventListener('focus', () => highlightRuler(r.id));
+  med.addEventListener('blur', clearHighlight);
+  med.addEventListener('click', () => scrollToMedallion(r.id, true));
+  track.appendChild(med);
+  medallionByRuler[r.id] = med;
+});
+
+/* ===================== POZICOVÁNÍ medailonů a spanů ===================== */
+function layout() {
+  RULERS.forEach(r => {
+    const nodes = nodesByRuler[r.id];
+    if (!nodes.length) return;
+    const track = nodes[0].parentElement;
+    const trackRect = track.getBoundingClientRect();
+
+    let topDot = Infinity, botDot = -Infinity;
+    nodes.forEach(nd => {
+      const dot = nd.querySelector('.tl-node__dot');
+      const dr = dot.getBoundingClientRect();
+      const center = dr.top - trackRect.top + dr.height / 2;
+      if (center < topDot) topDot = center;
+      if (center > botDot) botDot = center;
+    });
+
+    const span = spanByRuler[r.id];
+    const pad = 26;
+    const spanTop = Math.max(0, topDot - pad);
+    const spanBot = botDot + pad;
+    span.style.top = spanTop + 'px';
+    span.style.height = Math.max(0, spanBot - spanTop) + 'px';
+
+    const med = medallionByRuler[r.id];
+    med.style.top = topDot + 'px';
+  });
+}
+
+/* ===================== INTERAKCE: ZVÝRAZNĚNÍ ===================== */
+let activeRuler = null;
+function highlightRuler(id) {
+  activeRuler = id;
+  stage.classList.add('dim');
+  RULERS.forEach(r => {
+    const on = r.id === id;
+    nodesByRuler[r.id].forEach(nd => nd.classList.toggle('hl', on));
+    medallionByRuler[r.id] && medallionByRuler[r.id].classList.toggle('emph', on);
+    spanByRuler[r.id] && spanByRuler[r.id].classList.toggle('emph', on);
+    legendItemByRuler[r.id] && legendItemByRuler[r.id].classList.toggle('emph', on);
+  });
+}
+function clearHighlight() {
+  activeRuler = null;
+  stage.classList.remove('dim');
+  RULERS.forEach(r => {
+    nodesByRuler[r.id].forEach(nd => nd.classList.remove('hl'));
+    medallionByRuler[r.id] && medallionByRuler[r.id].classList.remove('emph');
+    spanByRuler[r.id] && spanByRuler[r.id].classList.remove('emph');
+    legendItemByRuler[r.id] && legendItemByRuler[r.id].classList.remove('emph');
+  });
+}
+function scrollToMedallion(id, pulse) {
+  const med = medallionByRuler[id];
+  if (!med) return;
+  const firstNode = nodesByRuler[id][0];
+  (firstNode || med).scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
+  if (pulse) {
+    med.classList.remove('pulse');
+    void med.offsetWidth;
+    med.classList.add('pulse');
+    setTimeout(() => med.classList.remove('pulse'), 2400);
+  }
+}
+function reduceMotion() { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+/* ===================== SCROLL: reveal uzlů + kreslení páteře + aktivní éra ===================== */
+// reveal uzlů (IntersectionObserver → .in)
+if ('IntersectionObserver' in window && !reduceMotion()) {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.12 });
+  nodeEls.forEach(n => io.observe(n));
+} else {
+  nodeEls.forEach(n => n.classList.add('in'));
+}
+
+// kreslení páteře (scaleY dle scrollu skrz každý track) + aktivní éra + onscreen panovník
+let scrollRaf = null;
+function onScrollUpdate() {
+  scrollRaf = null;
+  const vh = window.innerHeight;
+
+  // páteř každé éry: poměr, kolik z tracku je nad polovinou obrazovky
+  ERAS.forEach(era => {
+    const track = eraEls[era.id].querySelector('.tl-track');
+    const lines = track.querySelectorAll('.tl-spine__line');
+    const rect = track.getBoundingClientRect();
+    const total = rect.height || 1;
+    const drawn = Math.min(total, Math.max(0, (vh * 0.62) - rect.top));
+    const ratio = Math.max(0, Math.min(1, drawn / total));
+    lines.forEach(l => { l.style.transform = `scaleY(${ratio})`; });
+  });
+
+  // aktivní éra v rail (dle středu obrazovky)
+  let activeEra = null;
+  ERAS.forEach(era => {
+    const rect = eraEls[era.id].getBoundingClientRect();
+    if (rect.top <= vh * 0.4 && rect.bottom >= vh * 0.4) activeEra = era.id;
+  });
+  if (!activeEra) {
+    // fallback: nejbližší k vrcholu
+    let best = null, bestTop = Infinity;
+    ERAS.forEach(era => { const t = eraEls[era.id].getBoundingClientRect().top; if (t <= vh * 0.5 && t < bestTop) { bestTop = t; best = era.id; } });
+    activeEra = best;
+  }
+  railList.querySelectorAll('.tl-rail__item').forEach(it => {
+    it.classList.toggle('active', it.getAttribute('data-era') === activeEra);
+  });
+
+  // onscreen panovník v legendě (hover má přednost)
+  if (activeRuler === null) {
+    const mid = vh / 2;
+    let bestN = null, bestDist = Infinity;
+    nodeEls.forEach(nd => {
+      const r = nd.getBoundingClientRect();
+      const c = r.top + r.height / 2;
+      const d = Math.abs(c - mid);
+      if (d < bestDist) { bestDist = d; bestN = nd; }
+    });
+    RULERS.forEach(r => { legendItemByRuler[r.id] && legendItemByRuler[r.id].classList.remove('onscreen'); });
+    if (bestN) {
+      const rid = Number(bestN.getAttribute('data-ruler'));
+      legendItemByRuler[rid] && legendItemByRuler[rid].classList.add('onscreen');
+    }
+  }
+}
+window.addEventListener('scroll', () => { if (!scrollRaf) scrollRaf = requestAnimationFrame(onScrollUpdate); }, { passive: true });
+
+/* ===================== REJSTŘÍK ÉR: collapse (mobil) ===================== */
+const eraRail = document.getElementById('eraRail');
+const railToggle = document.getElementById('railToggle');
+const railToggleLabel = document.getElementById('railToggleLabel');
+railToggle.addEventListener('click', () => {
+  const collapsed = eraRail.classList.toggle('collapsed');
+  railToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  railToggleLabel.textContent = collapsed ? 'Éry' : 'Skrýt';
+});
+
+/* ===================== LEGENDA: collapse ===================== */
+const legend = document.getElementById('rulersLegend');
+const legendHead = document.getElementById('legendHead');
+legendHead.addEventListener('click', () => {
+  const collapsed = legend.classList.toggle('collapsed');
+  legendHead.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+});
+
+/* ===================== HERO: „Pokračovat" ===================== */
+document.getElementById('heroScroll').addEventListener('click', () => {
+  document.getElementById('chronicleTop').scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+});
+
+/* ===================== NOČNÍ HERO: výška + hvězdy + přepnutí chrome ===================== */
+const hero = document.getElementById('tlHero');
+function fitHero() {
+  if (window.scrollY > 80) return;
+  const top = hero.getBoundingClientRect().top;
+  hero.style.minHeight = `${Math.max(460, window.innerHeight - top)}px`;
+}
+
+// generuj CSS hvězdy: statické pole (box-shadow) + několik jemně blikajících
+function buildStars() {
+  const base = document.getElementById('starsBase');
+  const tw = document.getElementById('twinkles');
+  const W = window.innerWidth, H = Math.round(window.innerHeight * 0.78);
+  // statické pole hvězd jako box-shadow (výkonné)
+  const shadows = [];
+  const count = Math.min(220, Math.round(W * H / 5200));
+  for (let i = 0; i < count; i++) {
+    const x = Math.round(Math.random() * W);
+    const y = Math.round(Math.random() * H * 0.92);
+    const size = Math.random() < 0.16 ? 2 : 1;
+    const gold = Math.random() < 0.14;
+    const alpha = (0.35 + Math.random() * 0.5).toFixed(2);
+    const col = gold ? `rgba(233,194,126,${alpha})` : `rgba(245,234,224,${alpha})`;
+    shadows.push(`${x}px ${y}px 0 ${size === 2 ? '0.5px' : '0'} ${col}`);
+  }
+  base.style.boxShadow = shadows.join(',');
+  base.style.width = base.style.height = '1px';
+
+  // blikající hvězdy (několik málo, respektuje reduced-motion přes CSS)
+  tw.innerHTML = '';
+  const twCount = 26;
+  for (let i = 0; i < twCount; i++) {
+    const s = document.createElement('span');
+    s.className = 'tl-tw' + (Math.random() < 0.3 ? ' gold' : '');
+    const size = 1.5 + Math.random() * 1.8;
+    s.style.width = s.style.height = size.toFixed(1) + 'px';
+    s.style.left = Math.round(Math.random() * W) + 'px';
+    s.style.top = Math.round(Math.random() * H * 0.8) + 'px';
+    s.style.setProperty('--tw-dur', (3.2 + Math.random() * 4).toFixed(1) + 's');
+    s.style.setProperty('--tw-delay', (Math.random() * 4).toFixed(1) + 's');
+    tw.appendChild(s);
+  }
+}
+
+// přepnutí přebarvení chrome dle toho, zda je hlavička/hero nad nocí
+function updateNightChrome() {
+  const heroBottom = hero.getBoundingClientRect().bottom;
+  // chrome (hlavička + přepínač) je „nad nocí", dokud dno hera nevyjelo nahoru
+  const on = heroBottom > 90;
+  document.documentElement.classList.toggle('night-active', true);
+  document.documentElement.classList.toggle('night-on', on);
+}
+window.addEventListener('scroll', updateNightChrome, { passive: true });
+
+/* ===================== TÉMA ===================== */
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(dark) {
+  document.documentElement.classList.toggle('dark', dark);
+  themeToggle.innerHTML = dark ? '&#9728;' : '&#9790;';
+  themeToggle.setAttribute('aria-pressed', dark ? 'true' : 'false');
+}
+let dark = false; // spec: default = light
+applyTheme(dark);
+themeToggle.addEventListener('click', () => { dark = !dark; applyTheme(dark); requestAnimationFrame(layout); });
+
+// zámeček (jen vizuál)
+document.getElementById('lockBtn').addEventListener('click', () => {
+  document.getElementById('lockBtn').animate(
+    [{ transform: 'scale(1)' }, { transform: 'scale(0.85)' }, { transform: 'scale(1)' }],
+    { duration: 260, easing: 'cubic-bezier(0.16,1,0.3,1)' }
+  );
+});
+
+/* ===================== INIT ===================== */
+function relayoutSoon() { requestAnimationFrame(() => requestAnimationFrame(() => { layout(); onScrollUpdate(); })); }
+window.addEventListener('resize', () => { fitHero(); buildStars(); requestAnimationFrame(layout); onScrollUpdate(); });
+if (document.fonts && document.fonts.ready) { document.fonts.ready.then(relayoutSoon); }
+window.addEventListener('load', () => { fitHero(); relayoutSoon(); });
+
+fitHero();
+buildStars();
+updateNightChrome();
+relayoutSoon();
+onScrollUpdate();
+</script>
+</body>
+</html>

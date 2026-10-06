@@ -1,0 +1,41 @@
+# SPA routing pro Apache (Forpsi shared hosting).
+# POZOR: `Options -MultiViews` NEPOUŽÍVAT — Forpsi ho v .htaccess nepovoluje
+# (AllowOverride) a shodí celý adresář na HTTP 500.
+# Rewrite musí mít RewriteBase / a absolutní cíl /index.html + zkratku na
+# index.html, jinak relativní přepis bez base spadne do smyčky → 500.
+
+RewriteEngine On
+RewriteBase /
+
+# Fallback soubor sám nepřepisovat (rozbije interní smyčku)
+RewriteRule ^index\.html$ - [L]
+
+# Existující soubory a adresáře servírovat normálně
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Vše ostatní → vstupní bod SPA
+RewriteRule . /index.html [L]
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/jpeg "access plus 1 month"
+  ExpiresByType image/webp "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

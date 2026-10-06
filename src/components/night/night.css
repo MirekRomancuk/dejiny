@@ -1,0 +1,230 @@
+/* ============================================================================
+   NOČNÍ VZHLED — sdílený napříč celým webem.
+   Dvě „scény" sdílejí stejný vizuál (hvězdy, silueta, rozbřesk do pergamenu)
+   i stejný mechanismus přebarvení chrome:
+
+   1) TimelineNight  → position:fixed hero přes celý viewport (jen časová osa).
+   2) NightBackdrop  → position:absolute „header band" ukotvený k vršku
+                        dokumentu (ostatní stránky i tabulka Události). Band má
+                        výšku spodní hrany hlavičkové zóny a ODSCROLLUJE spolu
+                        s hlavičkou → rozbřesk končí přesně tam, kde začíná
+                        obsah, takže obsah leží na pergamenu (--background).
+
+   Přebarvení chrome je scoped na html.night-active(.night-on) a platí pro obě
+   scény. Mimo tento stav zůstává web vizuálně beze změny.
+   Barvy rozbřesku končí v hsl(var(--background)) → navazuje v light i dark.
+   ============================================================================ */
+
+:root {
+  --night-ink: #f5eae0;
+  --night-soft: #cbbba8;
+  --night-gold: #e9c27e;
+  --night-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------- společné vrstvy scény (grad, mlhovina, hvězdy, třpyt, silueta) ---------- */
+.night-scene {
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+.night-scene__grad {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(120% 70% at 50% -8%, rgba(43, 32, 24, 0.55), transparent 60%),
+    radial-gradient(90% 55% at 50% 100%, rgba(217, 148, 74, 0.16), transparent 72%),
+    linear-gradient(180deg, #140f0b 0%, #1a1410 30%, #241a12 52%, #40291a 70%, #7a5638 82%, #b98a56 90%, hsl(var(--background)) 100%);
+}
+.night-scene__nebula { position: absolute; border-radius: 50%; z-index: 0; }
+.night-scene__nebula--a { width: 72vw; height: 72vw; left: -18vw; top: 2vh; background: radial-gradient(circle, rgba(217, 148, 74, 0.06), transparent 68%); }
+.night-scene__nebula--b { width: 58vw; height: 58vw; right: -14vw; top: 22vh; background: radial-gradient(circle, rgba(214, 69, 69, 0.035), transparent 66%); }
+.night-scene__stars { position: absolute; top: 0; left: 0; width: 1px; height: 1px; border-radius: 50%; z-index: 1; will-change: transform; }
+.night-scene__twinkles { position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 1; }
+.tl-tw {
+  position: absolute; border-radius: 50%; background: #f5eae0;
+  box-shadow: 0 0 4px 1px rgba(245, 234, 224, 0.55);
+  opacity: 0.85; will-change: opacity, transform;
+  animation: tlTwinkle var(--tw-dur, 4.5s) ease-in-out var(--tw-delay, 0s) infinite;
+}
+.tl-tw.gold { background: #e9c27e; box-shadow: 0 0 5px 1px rgba(233, 194, 126, 0.55); }
+@keyframes tlTwinkle {
+  0%, 100% { opacity: 0.28; transform: scale(0.82); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+.night-scene__hradcany {
+  position: absolute;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0);
+  z-index: 2;
+  display: block;
+  object-fit: contain;
+  object-position: center bottom;
+  opacity: 0.94;
+  user-select: none;
+  will-change: transform;
+}
+.night-meteor {
+  position: absolute; top: 0; left: 0; z-index: 3;
+  width: 140px; height: 2px; border-radius: 2px; opacity: 0;
+  background: linear-gradient(90deg, rgba(245, 234, 224, 0.95), rgba(233, 194, 126, 0));
+  filter: drop-shadow(0 0 3px rgba(245, 234, 224, 0.5));
+  /* --md = doba letu (nastavuje se náhodně per hvězda v startMeteors) */
+  animation: tlShoot var(--md, 2.8s) var(--night-ease) forwards;
+}
+@keyframes tlShoot {
+  0% { opacity: 0; transform: translate(var(--mx), var(--my)) rotate(var(--ang)) translateX(0); }
+  12% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(var(--mx), var(--my)) rotate(var(--ang)) translateX(-46vw); }
+}
+
+/* ============================================================================
+   1) TimelineNight — pevné (fixed) noční pozadí přes celý viewport.
+   ============================================================================ */
+.tl-night {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  will-change: opacity;
+}
+.tl-night[hidden] { display: none; }
+.tl-night .night-scene__hradcany {
+  /* silueta „stojí" na horizontu, kde gradient přechází v pergamen (~90 % výšky) */
+  bottom: 8vh;
+  width: min(1500px, 144%);
+  height: clamp(96px, 15vw, 210px);
+}
+
+/* ============================================================================
+   2) NightBackdrop — odscrollovatelný „header band".
+   position:absolute, ukotvený k vršku obsahového wrapperu; výšku (--night-h)
+   dopočítá JS z reálné spodní hrany hlavičkové zóny. Silueta sedí na spodní
+   hraně bandu (na styku noc↔pergamen), takže obsah pod bandem je na pergamenu.
+   ============================================================================ */
+.night-band {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--night-h, 40vh);
+  z-index: 0;
+  will-change: opacity;
+}
+.night-band[hidden] { display: none; }
+.night-band .night-scene__hradcany {
+  /* silueta stojí na spodní hraně bandu (v „horizontové" zóně pod hlavičkou) */
+  bottom: 0;
+  width: min(1500px, 150%);
+  height: clamp(60px, 9vw, 130px);
+}
+/* Band je nízký → sdílený gradient osy by měl warm-ramp stlačený do pár px a
+   dělal by viditelný „šev" pod menu. Proto band dostane VLASTNÍ oblohu:
+   jednolitá tma přes horní část (nulová šance na hranu za nadpisem), rozbřesk
+   se rozsvěcí až dole u siluety a plynule přejde v pergamen. */
+.night-band .night-scene__grad {
+  background:
+    radial-gradient(120% 78% at 50% -18%, rgba(60, 44, 31, 0.45), transparent 60%),
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 54%,
+      rgba(42, 28, 17, 0.85) 71%,
+      #5c3d22 84%,
+      #9c6f42 93%,
+      hsl(var(--background)) 100%
+    ),
+    #130e0a;
+}
+/* „Horizont": přidá prostor pod hlavičkovým chrome (nadpis / hledání), aby na něm
+   silueta neseděla. Zvětší kotvu → band je vyšší, silueta klesne s mezerou od textu;
+   obsah stránky pak začíná až pod bandem, tedy na pergamenu. Scoped na band (ne osu). */
+html.night-band-active [data-night-anchor] { padding-bottom: clamp(150px, 18vh, 230px); }
+
+/* ============================================================================
+   PŘEBARVENÍ SDÍLENÉHO CHROME NAD NOCÍ (hlavička; na Událostech i filtr/přepínač)
+   Aktivní jen dokud je hlavička nad nocí (html.night-active.night-on).
+   Pozadí chrome zprůhlední (aby noc prosvítala), texty do světlé/zlaté palety.
+   Selektory míří na sdílený HeroHeader (header.relative) + kontejner Událostí.
+   ============================================================================ */
+
+/* chrome musí ležet NAD nočním pozadím (to má z-index:0) uvnitř .relative.z-10.
+   Hlavička i případná dolní kotva (filtr + přepínač na Událostech) se zvednou. */
+html.night-active header.relative { position: relative; z-index: 1; }
+html.night-active [data-night-anchor] { position: relative; z-index: 1; }
+
+/* --- hlavička (HeroHeader): titul, koruna, menu, oddělovač --- */
+.night-active.night-on header.relative .text-accent { color: var(--night-gold); transition: color 0.5s var(--night-ease); }
+.night-active.night-on header.relative h1 {
+  color: var(--night-ink);
+  text-shadow: 0 0 26px rgba(233, 194, 126, 0.16);
+  transition: color 0.5s var(--night-ease), text-shadow 0.5s var(--night-ease);
+}
+/* Pod-titul stránky (h2 primary) + jeho popisek. Na mobilu je hlavička vyšší,
+   takže tento blok padne do SVĚTLÉ části rozbřesku (b98a56 → pergamen), kde by
+   měl zlatý velký titul slabý kontrast (~2:1). Řešíme měkkým TMAVÝM scrimem za
+   pod-titulem (radiální, k okrajům mizí → žádná tvrdá „krabice" proti obloze),
+   nad kterým text leží (z-index:1). Na desktopu je pod-titul nad tmavou oblohou,
+   scrim tam prakticky splyne → beze změny; na světlém rozbřesku garantuje ≥4,5:1. */
+.night-active.night-on header.relative .night-subtitle::before {
+  content: '';
+  position: absolute;
+  inset: -6px 0 -10px;
+  z-index: 0;
+  background: radial-gradient(
+    120% 130% at 50% 42%,
+    rgba(16, 11, 8, 0.86) 0%,
+    rgba(16, 11, 8, 0.7) 46%,
+    rgba(16, 11, 8, 0.32) 72%,
+    transparent 100%
+  );
+  pointer-events: none;
+  transition: opacity 0.5s var(--night-ease);
+}
+.night-active.night-on header.relative h2 {
+  color: var(--night-gold);
+  text-shadow: 0 1px 2px rgba(16, 11, 8, 0.85), 0 0 26px rgba(233, 194, 126, 0.18);
+  transition: color 0.5s var(--night-ease), text-shadow 0.5s var(--night-ease);
+}
+.night-active.night-on header.relative h2 + p {
+  color: var(--night-ink);
+  text-shadow: 0 1px 2px rgba(16, 11, 8, 0.8);
+  transition: color 0.5s var(--night-ease), text-shadow 0.5s var(--night-ease);
+}
+/* erby (barevné PNG): jen zvednout stín pro čitelnost na tmavém */
+.night-active.night-on header.relative img[alt^="Znak"] {
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.55));
+  transition: filter 0.5s var(--night-ease);
+}
+/* menu odkazy: neaktivní → světle písková, aktivní → jasné zlato */
+.night-active.night-on header.relative nav a { color: var(--night-soft); transition: color 0.4s var(--night-ease); }
+.night-active.night-on header.relative nav a:hover { color: var(--night-ink); }
+.night-active.night-on header.relative nav a[aria-current="page"] { color: var(--night-gold); }
+.night-active.night-on header.relative nav a[aria-current="page"]::after { background: var(--night-gold); }
+/* oddělovač pod menu — přes noc neviditelný (obloha plyne bez švu) */
+.night-active.night-on header.relative > .border-b { border-bottom-color: transparent; transition: border-color 0.5s var(--night-ease); }
+/* zámeček + přepínač motivu vpravo nahoře čitelné na noci */
+.night-active.night-on header.relative .absolute button { color: var(--night-soft); }
+.night-active.night-on header.relative .absolute button:hover { color: var(--night-ink); }
+
+/* --- karta filtru (chrome nad nocí, sekce Události): zprůhlednit pozadí ---
+   POZOR: cílíme přes [data-night-chrome] jen na kartu filtru, NE obecně na
+   .bg-card/60 — jinak by se stejně přebarvila i obalová karta tabulky (obsah)
+   a ta má zůstat na pergamenu. Marker drží i v režimu časové osy. */
+.night-active.night-on [data-night-chrome] {
+  background: rgba(26, 20, 16, 0.28);
+  border-color: rgba(217, 148, 74, 0.28);
+  backdrop-filter: blur(4px);
+  transition: background 0.5s var(--night-ease), border-color 0.5s var(--night-ease);
+}
+/* přepínač Tabulka/Časová osa: neaktivní záložka jasně čitelná (tmavé pozadí
+   dostane přes [data-night-chrome]), aktivní drží vínovou. Text neaktivní držíme
+   světlý (--night-ink) + jemný stín, ať je čitelný i na světlejším rozbřesku. */
+.night-active.night-on [role="tablist"] [role="tab"][aria-selected="false"] {
+  color: var(--night-ink);
+  text-shadow: 0 1px 2px rgba(16, 11, 8, 0.7);
+  transition: color 0.4s var(--night-ease);
+}
+.night-active.night-on [role="tablist"] [role="tab"][aria-selected="false"]:hover {
+  color: #fff;
+}

@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light - pergamen / kostky / heraldická červená / zlato */
+    --background: 36 33% 92%;
+    --foreground: 25 30% 15%;
+
+    --card: 38 30% 88%;
+    --card-foreground: 25 30% 15%;
+
+    --popover: 36 33% 96%;
+    --popover-foreground: 25 30% 15%;
+
+    --primary: 0 100% 27%;
+    --primary-foreground: 38 30% 95%;
+
+    --secondary: 36 30% 82%;
+    --secondary-foreground: 25 30% 15%;
+
+    --muted: 36 20% 85%;
+    --muted-foreground: 25 15% 35%;
+
+    --accent: 34 76% 44%;
+    --accent-foreground: 38 30% 95%;
+
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 34 30% 70%;
+    --input: 34 30% 80%;
+    --ring: 0 100% 27%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 25 15% 10%;
+    --foreground: 36 30% 90%;
+
+    --card: 25 15% 14%;
+    --card-foreground: 36 30% 90%;
+
+    --popover: 25 15% 14%;
+    --popover-foreground: 36 30% 90%;
+
+    --primary: 0 70% 50%;
+    --primary-foreground: 36 30% 95%;
+
+    --secondary: 25 15% 22%;
+    --secondary-foreground: 36 30% 90%;
+
+    --muted: 25 10% 20%;
+    --muted-foreground: 36 20% 70%;
+
+    --accent: 34 76% 55%;
+    --accent-foreground: 25 15% 10%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 25 15% 25%;
+    --input: 25 15% 22%;
+    --ring: 0 70% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    font-family: var(--font-body), 'EB Garamond', serif;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  /* Rich-text cell (CellViewer) styling */
+  .cell-rich a {
+    @apply text-primary underline-offset-2 hover:underline;
+  }
+  .cell-rich figure.img-block {
+    @apply my-2;
+  }
+  .cell-rich figure.img-block[data-align="left"] {
+    @apply float-left mr-3;
+  }
+  .cell-rich figure.img-block[data-align="right"] {
+    @apply float-right ml-3;
+  }
+  .cell-rich figure.img-block[data-align="center"] {
+    @apply mx-auto block;
+  }
+  .cell-rich img[data-lightbox="true"] {
+    @apply cursor-zoom-in transition-transform hover:scale-[1.02];
+  }
+  .cell-rich figcaption {
+    @apply text-xs italic text-muted-foreground;
+  }
+}
